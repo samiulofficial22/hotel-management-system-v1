@@ -1,0 +1,150 @@
+@extends('layouts.app')
+@section('title', 'Housekeeping')
+@section('content')
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+    <h1 class="h3 mb-0">Housekeeping</h1>
+</div>
+
+{{-- Date navigator --}}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3">
+        <form method="GET" action="{{ route('housekeeping.index') }}" class="d-flex flex-wrap align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <a href="{{ route('housekeeping.index', ['date' => $date->copy()->subDay()->format('Y-m-d')]) }}" class="btn btn-outline-secondary btn-sm" title="Previous day">‹</a>
+                <label class="mb-0 fw-medium">{{ $date->format('l, F j, Y') }}</label>
+                <a href="{{ route('housekeeping.index', ['date' => $date->copy()->addDay()->format('Y-m-d')]) }}" class="btn btn-outline-secondary btn-sm" title="Next day">›</a>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <input type="date" name="date" class="form-control form-control-sm" style="width: auto;" value="{{ $date->format('Y-m-d') }}">
+                <button type="submit" class="btn btn-primary btn-sm">Go</button>
+            </div>
+            <a href="{{ route('housekeeping.index', ['date' => now()->format('Y-m-d')]) }}" class="btn btn-outline-secondary btn-sm">Today</a>
+        </form>
+    </div>
+</div>
+
+@can('housekeeping.manage')
+{{-- Assign room to user --}}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-light py-2">
+        <strong>Assign Room</strong>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ route('housekeeping.assign') }}" class="row g-2 align-items-end">
+            @csrf
+            <input type="hidden" name="date" value="{{ $date->format('Y-m-d') }}">
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-0">Room</label>
+                <select name="room_id" class="form-select form-select-sm" required>
+                    <option value="">— Select room —</option>
+                    @foreach($rooms as $r)
+                    <option value="{{ $r->id }}">{{ $r->number }} ({{ $r->roomType->name ?? '-' }})</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-0">Assign to</label>
+                <select name="assigned_to" class="form-select form-select-sm" required>
+                    @foreach($users as $u)
+                    <option value="{{ $u->id }}" {{ $u->id == auth()->id() ? 'selected' : '' }}>{{ $u->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-success btn-sm w-100">Assign</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endcan
+
+{{-- Assignments list --}}
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
+        <strong>Assignments for {{ $date->format('M j, Y') }}</strong>
+        <span class="badge bg-primary">{{ $assignments->count() }} room(s)</span>
+    </div>
+    @if($assignments->isEmpty())
+    <div class="card-body text-center text-muted py-5">
+        <p class="mb-0">No assignments for this date.</p>
+        @can('housekeeping.manage')
+        <p class="small mb-0 mt-1">Use the form above to assign a room to a staff member.</p>
+        @endcan
+    </div>
+    @else
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Room</th>
+                    <th>Type</th>
+                    <th>Assigned to</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($assignments as $a)
+                <tr>
+                    <td>
+                        <span class="fw-medium">{{ $a->room->number ?? '-' }}</span>
+                    </td>
+                    <td class="text-muted small">{{ $a->room->roomType->name ?? '-' }}</td>
+                    <td>{{ $a->assignedTo->name ?? '-' }}</td>
+                    <td>
+                        @php $cfg = \App\Models\HousekeepingAssignment::statusBadgeConfig($a->status); @endphp
+                        <span class="badge {{ $cfg['class'] }}">{{ $cfg['label'] }}</span>
+                    </td>
+                    <td class="text-end">
+                        @if($a->status === 'pending')
+                            @can('housekeeping.manage')
+                            <form action="{{ route('housekeeping.reassign', $a) }}" method="POST" class="d-inline-block me-1">
+                                @csrf
+                                <select name="assigned_to" class="form-select form-select-sm d-inline-block w-auto" onchange="this.form.submit()">
+                                    @foreach($users as $u)
+                                    <option value="{{ $u->id }}" {{ $a->assigned_to == $u->id ? 'selected' : '' }}>{{ $u->name }}</option>
+                                    @endforeach
+                                </select>
+                            </form>
+                            @endcan
+                            <form action="{{ route('housekeeping.start', $a) }}" method="POST" class="d-inline">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-info">Start</button>
+                            </form>
+                        @endif
+                        @if($a->status === 'in_progress')
+                            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#completeModal{{ $a->id }}">Complete</button>
+                            <div class="modal fade" id="completeModal{{ $a->id }}" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <form action="{{ route('housekeeping.complete', $a) }}" method="POST">
+                                            @csrf
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Complete – Room {{ $a->room->number ?? '' }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <label class="form-label small">Notes (optional)</label>
+                                                <textarea name="notes" class="form-control" rows="2" placeholder="Any notes...">{{ $a->notes }}</textarea>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-success">Mark Complete</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                        @if($a->status === 'completed')
+                            <span class="text-muted small">{{ $a->completed_at?->format('H:i') ?? '-' }}</span>
+                        @endif
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    @endif
+</div>
+@endsection
