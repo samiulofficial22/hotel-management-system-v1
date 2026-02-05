@@ -25,7 +25,13 @@ use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\MarketingCampaignController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\LanguageController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\GuestRequestController;
+use App\Http\Controllers\GuestApprovalController;
+use App\Http\Controllers\GuestPortalController;
+use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -36,6 +42,10 @@ use Illuminate\Support\Facades\Route;
 
 // Language switcher (auth optional)
 Route::post('/language', [App\Http\Controllers\LanguageController::class, 'switch'])->name('language.switch')->middleware('web');
+
+// Public guest booking request (no login required)
+Route::get('/booking/request', [GuestRequestController::class, 'create'])->name('booking.request');
+Route::post('/booking/request', [GuestRequestController::class, 'store'])->name('booking.request.store');
 
 // Auth routes (guest only) - must be defined first so login page is findable
 Route::middleware('guest')->group(function (): void {
@@ -49,12 +59,40 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout')->middl
 Route::middleware(['auth'])->group(function (): void {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('permission:dashboard.view');
 
+    // Profile (any authenticated user)
+    Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+
+    // Guest panel (guest role only – checked in controller to avoid custom middleware dependency)
+    Route::prefix('guest')->name('guest.')->group(function (): void {
+        Route::get('/', [\App\Http\Controllers\GuestPortalController::class, 'dashboard'])->name('dashboard');
+        Route::get('/profile', [\App\Http\Controllers\GuestPortalController::class, 'profile'])->name('profile');
+        Route::post('/profile', [\App\Http\Controllers\GuestPortalController::class, 'updateProfile'])->name('profile.update');
+        Route::post('/password', [\App\Http\Controllers\GuestPortalController::class, 'updatePassword'])->name('password.update');
+        Route::get('/bookings', [\App\Http\Controllers\GuestPortalController::class, 'bookings'])->name('bookings');
+    });
+
+    // Guest booking requests (admin / guest.manage)
+    Route::middleware('permission:guest.manage')->group(function (): void {
+        Route::get('/guest-requests', [GuestApprovalController::class, 'index'])->name('guest.requests.index');
+        Route::post('/guest-requests/{booking}/approve', [GuestApprovalController::class, 'approve'])->name('guest.requests.approve');
+        Route::post('/guest-requests/{booking}/reject', [GuestApprovalController::class, 'reject'])->name('guest.requests.reject');
+    });
+
+    // Users (admin / users.manage)
+    Route::resource('users', UserController::class)
+        ->except(['show'])
+        ->middleware('permission:users.manage');
+
     // Room types & rooms
     Route::resource('room-types', RoomTypeController::class)->except(['show'])->middleware('permission:room_types.manage');
     Route::resource('rooms', RoomController::class)->except(['show'])->middleware('permission:rooms.manage');
 
     // Guests
     Route::resource('guests', GuestController::class)->middleware('permission:guests.manage');
+    Route::post('guests/{guest}/revoke-portal', [GuestController::class, 'revokePortal'])
+        ->name('guests.revoke-portal')
+        ->middleware('permission:guests.manage');
 
     // Bookings
     Route::get('/bookings/calendar', [BookingController::class, 'calendar'])->name('bookings.calendar')->middleware('permission:bookings.manage');
@@ -183,9 +221,12 @@ Route::middleware(['auth'])->group(function (): void {
         Route::get('/reports/occupancy', [ReportController::class, 'occupancy'])->name('reports.occupancy');
         Route::get('/reports/revenue', [ReportController::class, 'revenue'])->name('reports.revenue');
     });
+
+    // NEW – SAFE ADDITION: Settings → Departments
+    Route::middleware('permission:departments.manage')->prefix('settings')->name('settings.')->group(function (): void {
+        Route::resource('departments', DepartmentController::class)->except(['show']);
+    });
 });
 
-// Redirect root to dashboard when authenticated, otherwise to login
-Route::get('/', function () {
-    return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
-});
+// Public home page; authenticated users are redirected to dashboard
+Route::get('/', [HomeController::class, 'index'])->name('home');

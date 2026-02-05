@@ -124,37 +124,61 @@
                 <i class="bi bi-graph-up"></i> {{ __('messages.Reports') }}
             </a>
             @endcan
+            @can('guest.manage')
+            <a class="nav-link {{ request()->routeIs('guest.requests.*') ? 'active' : '' }}" href="{{ route('guest.requests.index') }}">
+                <i class="bi bi-envelope-open"></i> {{ __('Guest booking requests') }}
+            </a>
+            @endcan
+            @canany(['departments.manage', 'users.manage', 'roles.manage'])
+            <span class="px-3 py-1 small text-white-50 text-uppercase">{{ __('messages.Settings') }}</span>
+            @endcanany
+            @can('departments.manage')
+            <a class="nav-link {{ request()->routeIs('settings.departments.*') ? 'active' : '' }}" href="{{ route('settings.departments.index') }}">
+                <i class="bi bi-diagram-3"></i> {{ __('messages.Departments') }}
+            </a>
+            @endcan
+            @can('users.manage')
+            <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">
+                <i class="bi bi-people"></i> {{ __('messages.Users') }}
+            </a>
+            @endcan
         </nav>
-        <div class="mt-auto p-3 border-top border-secondary border-opacity-25">
-            <form action="{{ route('language.switch') }}" method="POST" class="mb-2">
-                @csrf
-                <select name="locale" class="form-select form-select-sm bg-dark text-light border-secondary" onchange="this.form.submit()">
-                    @foreach(config('app.available_locales', ['en' => 'English', 'bn' => 'বাংলা']) as $code => $label)
-                    <option value="{{ $code }}" {{ app()->getLocale() === $code ? 'selected' : '' }}>{{ $label }}</option>
-                    @endforeach
-                </select>
-            </form>
-            <div class="text-white-50 small px-2">{{ auth()->user()->name }}</div>
-            <form action="{{ route('logout') }}" method="POST" class="mt-1">
-                @csrf
-                <button type="submit" class="btn btn-outline-light btn-sm w-100">
-                    <i class="bi bi-box-arrow-right"></i> {{ __('messages.Logout') }}
-                </button>
-            </form>
-        </div>
     </aside>
 
     <!-- Mobile backdrop -->
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
     <div class="main-content d-flex flex-column w-100">
-        <!-- Top bar (mobile: menu + title) -->
+        <!-- Top bar: left = menu + title, right = language + user + logout -->
         <header class="bg-white border-bottom shadow-sm sticky-top">
-            <div class="d-flex align-items-center px-3 py-2">
-                <button class="btn btn-link text-dark d-lg-none me-2 p-0 sidebar-toggle" type="button" aria-label="{{ __('messages.Open menu') }}">
-                    <i class="bi bi-list fs-4"></i>
-                </button>
-                <h1 class="h5 mb-0 text-muted">@yield('title', __('messages.Hotel Management'))</h1>
+            <div class="d-flex align-items-center justify-content-between px-3 py-2 gap-2">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-link text-dark d-lg-none me-2 p-0 sidebar-toggle" type="button" aria-label="{{ __('messages.Open menu') }}">
+                        <i class="bi bi-list fs-4"></i>
+                    </button>
+                    <h1 class="h5 mb-0 text-muted">@yield('title', __('messages.Hotel Management'))</h1>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                    <form action="{{ route('language.switch') }}" method="POST" class="mb-0">
+                        @csrf
+                        <select name="locale" class="form-select form-select-sm" style="width: auto; min-width: 5rem;" onchange="this.form.submit()">
+                            @foreach(config('app.available_locales', ['en' => 'English', 'bn' => 'বাংলা']) as $code => $label)
+                            <option value="{{ $code }}" {{ app()->getLocale() === $code ? 'selected' : '' }}>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </form>
+                    <a href="{{ route('profile.edit') }}" class="d-flex align-items-center gap-2 text-decoration-none text-muted small" title="{{ __('Edit Profile') }}">
+                        <img src="{{ auth()->user()->profile_pic_url }}" alt="" class="rounded-circle" width="32" height="32" style="object-fit: cover;">
+                        <span class="d-none d-sm-inline">{{ auth()->user()->name }}</span>
+                        <i class="bi bi-pencil-square opacity-75 d-none d-md-inline"></i>
+                    </a>
+                    <form action="{{ route('logout') }}" method="POST" class="mb-0">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> <span class="d-none d-md-inline">{{ __('messages.Logout') }}</span>
+                        </button>
+                    </form>
+                </div>
             </div>
         </header>
 

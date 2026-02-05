@@ -12,9 +12,9 @@ class ChartOfAccountService
 
     public function rules(?int $accountId = null): array
     {
-        $codeRule = $accountId ? 'required|string|max:20|unique:chart_of_accounts,code,' . $accountId : 'required|string|max:20|unique:chart_of_accounts,code';
+        $codeUnique = $accountId ? 'unique:chart_of_accounts,code,' . $accountId : 'unique:chart_of_accounts,code';
         return [
-            'code' => [$codeRule],
+            'code' => ['required', 'string', 'max:20', $codeUnique],
             'name' => ['required', 'string', 'max:150'],
             'type' => ['required', 'in:asset,liability,equity,revenue,expense'],
             'parent_id' => ['nullable', 'exists:chart_of_accounts,id'],

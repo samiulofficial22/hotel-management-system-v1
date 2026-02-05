@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -25,6 +26,7 @@ class User extends Authenticatable
         'email',
         'password',
         'language_preference',
+        'profile_pic',
     ];
 
     /**
@@ -50,9 +52,24 @@ class User extends Authenticatable
         ];
     }
 
+    /** Profile picture URL; default avatar when not set. */
+    public function getProfilePicUrlAttribute(): string
+    {
+        if (! empty($this->profile_pic)) {
+            return asset('storage/' . $this->profile_pic);
+        }
+        return asset('images/default-avatar.svg');
+    }
+
     /** @return HasMany<Booking, $this> */
     public function createdBookings(): HasMany
     {
         return $this->hasMany(Booking::class, 'created_by');
+    }
+
+    /** Guest profile linked to this user (portal use). */
+    public function guest(): HasOne
+    {
+        return $this->hasOne(Guest::class);
     }
 }

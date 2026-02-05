@@ -91,6 +91,32 @@ class BookingService
         });
     }
 
+    /**
+     * NEW – SAFE ADDITION:
+     * Create a pending booking request (no room status change, no emails).
+     * Used for public/website guest requests; keeps existing admin flow unchanged.
+     *
+     * @throws ValidationException
+     */
+    public function createPendingRequest(array $data, ?int $createdBy = null): Booking
+    {
+        $checkIn = Carbon::parse($data['check_in_date']);
+        $checkOut = Carbon::parse($data['check_out_date']);
+        if (!$this->isRoomAvailable((int) $data['room_id'], $checkIn, $checkOut)) {
+            throw ValidationException::withMessages(['room_id' => ['This room is already booked for the selected dates.']]);
+        }
+
+        $data['booking_number'] = $this->generateBookingNumber();
+        $data['status'] = Booking::STATUS_PENDING;
+        $data['booking_type'] = $data['booking_type'] ?? Booking::TYPE_ADVANCE;
+        $data['adults'] = $data['adults'] ?? 1;
+        $data['children'] = $data['children'] ?? 0;
+        $data['late_checkout_fee'] = $data['late_checkout_fee'] ?? 0;
+        $data['created_by'] = $createdBy;
+
+        return $this->bookingRepository->create($data);
+    }
+
     /** @throws ValidationException */
     public function update(Booking $booking, array $data): Booking
     {
@@ -138,6 +164,32 @@ class BookingService
             if ($booking->room->status === Room::STATUS_OCCUPIED) {
                 $this->roomRepository->update($booking->room, ['status' => Room::STATUS_AVAILABLE]);
             }
+            return $booking->fresh();
+        });
+    }
+
+    /**
+     * NEW – SAFE ADDITION:
+     * Approve a previously pending booking request (status -> confirmed + room status update).
+     * Keeps existing admin create/check-in logic unchanged.
+     *
+     * @throws ValidationException
+     */
+    public function approvePending(Booking $booking): Booking
+    {
+        $checkIn = $booking->check_in_date;
+        $checkOut = $booking->check_out_date;
+        $roomId = $booking->room_id;
+
+        if (!$this->isRoomAvailable($roomId, $checkIn, $checkOut, $booking->id)) {
+            throw ValidationException::withMessages(['room_id' => ['This room is already booked for the selected dates.']]);
+        }
+
+        return DB::transaction(function () use ($booking) {
+            $this->bookingRepository->update($booking, [
+                'status' => Booking::STATUS_CONFIRMED,
+            ]);
+            $this->roomRepository->update($booking->room, ['status' => Room::STATUS_OCCUPIED]);
             return $booking->fresh();
         });
     }

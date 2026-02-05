@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class MaintenanceRequest extends Model
 {
     protected $fillable = [
-        'room_id', 'title', 'description', 'status', 'priority',
+        'room_id', 'department_id', 'title', 'description', 'status', 'priority',
         'reported_by', 'assigned_to', 'resolved_at', 'resolved_by', 'resolution_notes',
     ];
 
@@ -28,6 +28,12 @@ class MaintenanceRequest extends Model
     public function room(): BelongsTo
     {
         return $this->belongsTo(Room::class);
+    }
+
+    /** NEW – SAFE ADDITION: Optional department. */
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class);
     }
 
     /** @return BelongsTo<User, $this> */

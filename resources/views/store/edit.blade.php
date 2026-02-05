@@ -10,6 +10,15 @@
     <input type="text" name="name" class="form-control" value="{{ old('name', $item->name) }}" required>
 </div>
 <div class="mb-3">
+    <label class="form-label">{{ __('messages.Department') }} ({{ __('messages.optional') }})</label>
+    <select name="department_id" class="form-select">
+        <option value="">{{ __('messages.Not assigned') }}</option>
+        @foreach($departments ?? [] as $d)
+        <option value="{{ $d->id }}" {{ old('department_id', $item->department_id) == $d->id ? 'selected' : '' }}>{{ $d->name }} ({{ $d->code }})</option>
+        @endforeach
+    </select>
+</div>
+<div class="mb-3">
     <label class="form-label">Quantity</label>
     <input type="number" name="quantity" class="form-control" min="0" value="{{ old('quantity', $item->quantity) }}">
 </div>

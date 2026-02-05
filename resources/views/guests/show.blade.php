@@ -37,7 +37,16 @@
     @endif
 </div>
 @endif
-<p><a href="{{ route('guests.edit', $guest) }}" class="btn btn-primary">Edit</a></p>
+<p>
+    <a href="{{ route('guests.edit', $guest) }}" class="btn btn-primary">Edit</a>
+    @if($guest->user_id)
+        <form action="{{ route('guests.revoke-portal', $guest) }}" method="POST" class="d-inline"
+              onsubmit="return confirm('Remove portal access for this guest?');">
+            @csrf
+            <button type="submit" class="btn btn-outline-danger btn-sm">Remove Portal Access</button>
+        </form>
+    @endif
+</p>
 <h5>Bookings</h5>
 @foreach($guest->bookings as $b)
 <p>{{ $b->booking_number }} Room {{ $b->room->number ?? '' }} <a href="{{ route('bookings.show', $b) }}">View</a></p>

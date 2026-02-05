@@ -33,6 +33,15 @@
             @endforeach
         </select>
     </div>
+    <div class="col-md-6">
+        <label class="form-label">{{ __('messages.Department') }} ({{ __('messages.optional') }})</label>
+        <select name="department_id" class="form-select">
+            <option value="">{{ __('messages.Not assigned') }}</option>
+            @foreach($departments ?? [] as $d)
+            <option value="{{ $d->id }}" {{ old('department_id', $request->department_id) == $d->id ? 'selected' : '' }}>{{ $d->name }} ({{ $d->code }})</option>
+            @endforeach
+        </select>
+    </div>
     <div class="col-12">
         <label class="form-label">{{ __('messages.Resolution notes') }}</label>
         <textarea name="resolution_notes" class="form-control" rows="3" placeholder="{{ __('messages.Resolution notes') }}">{{ old('resolution_notes', $request->resolution_notes) }}</textarea>

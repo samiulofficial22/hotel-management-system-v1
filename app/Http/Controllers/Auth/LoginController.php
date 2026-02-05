@@ -25,6 +25,13 @@ class LoginController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
+
+            $user = $request->user();
+            // NEW – SAFE ADDITION: Guests go to guest dashboard instead of admin dashboard.
+            if ($user && $user->hasRole('Guest')) {
+                return redirect()->intended(route('guest.dashboard'));
+            }
+
             return redirect()->intended(route('dashboard'));
         }
 

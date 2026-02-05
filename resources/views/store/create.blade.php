@@ -5,6 +5,7 @@
 <form method="POST" action="{{ route('store.store') }}">
 @csrf
 <div class="mb-3"><label class="form-label">Name</label><input type="text" name="name" class="form-control" required></div>
+<div class="mb-3"><label class="form-label">{{ __('messages.Department') }} ({{ __('messages.optional') }})</label><select name="department_id" class="form-select"><option value="">{{ __('messages.Not assigned') }}</option>@foreach($departments ?? [] as $d)<option value="{{ $d->id }}" {{ old('department_id') == $d->id ? 'selected' : '' }}>{{ $d->name }} ({{ $d->code }})</option>@endforeach</select></div>
 <div class="mb-3"><label class="form-label">Quantity</label><input type="number" name="quantity" class="form-control" min="0" value="0"></div>
 <button type="submit" class="btn btn-primary">Create</button>
 <a href="{{ route('store.index') }}" class="btn btn-secondary">Cancel</a>

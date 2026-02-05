@@ -27,6 +27,7 @@ class Guest extends Model
         'city',
         'country',
         'notes',
+        'user_id',
     ];
 
     protected $casts = [
@@ -49,5 +50,11 @@ class Guest extends Model
     public function getFullNameAttribute(): string
     {
         return trim("{$this->first_name} {$this->last_name}");
+    }
+
+    /** Link to app user for guest portal login (nullable). */
+    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

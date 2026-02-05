@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Guest;
 use App\Services\GuestService;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class GuestController extends Controller
@@ -34,6 +37,8 @@ class GuestController extends Controller
         $rules = array_merge($this->service->rules(), [
             'nid_photo_front' => ['nullable', 'file', 'image', 'max:2048'],
             'nid_photo_back' => ['nullable', 'file', 'image', 'max:2048'],
+            // NEW – SAFE ADDITION: optional portal password
+            'portal_password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
         $validated = $request->validate($rules);
         $photoFront = $request->file('nid_photo_front');
@@ -41,6 +46,16 @@ class GuestController extends Controller
         unset($validated['nid_photo_front'], $validated['nid_photo_back']);
         $guest = $this->service->create($validated);
         $this->storeNidPhotos($guest, $photoFront, $photoBack);
+
+        // NEW – SAFE ADDITION: Optional portal login creation when requested by admin.
+        if ($request->boolean('create_portal_user')) {
+            $this->ensurePortalUserForGuest(
+                $guest,
+                $request->input('portal_password') ?: null,
+                $request->boolean('portal_send_reset')
+            );
+        }
+
         return redirect()->route('guests.index')->with('success', __('Guest created.'));
     }
 
@@ -60,6 +75,7 @@ class GuestController extends Controller
         $rules = array_merge($this->service->rules(), [
             'nid_photo_front' => ['nullable', 'file', 'image', 'max:2048'],
             'nid_photo_back' => ['nullable', 'file', 'image', 'max:2048'],
+            'portal_password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
         $validated = $request->validate($rules);
         $photoFront = $request->file('nid_photo_front');
@@ -67,6 +83,16 @@ class GuestController extends Controller
         unset($validated['nid_photo_front'], $validated['nid_photo_back']);
         $this->service->update($guest, $validated);
         $this->storeNidPhotos($guest, $photoFront, $photoBack);
+
+        // NEW – SAFE ADDITION: Optional portal login creation/linking on update.
+        if ($request->boolean('create_portal_user')) {
+            $this->ensurePortalUserForGuest(
+                $guest,
+                $request->input('portal_password') ?: null,
+                $request->boolean('portal_send_reset')
+            );
+        }
+
         return redirect()->route('guests.show', $guest)->with('success', __('Guest updated.'));
     }
 
@@ -93,5 +119,81 @@ class GuestController extends Controller
     {
         $this->service->delete($guest);
         return redirect()->route('guests.index')->with('success', __('Guest deleted.'));
+    }
+
+    /**
+     * NEW – SAFE ADDITION:
+     * Ensure there is a linked User with Guest role for this guest.
+     * - Reuses existing user by email when possible.
+     * - Does not remove any existing roles.
+     * - Does not affect admin/reception flows.
+     */
+    protected function ensurePortalUserForGuest(Guest $guest, ?string $plainPassword = null, bool $sendReset = false): void
+    {
+        // Already linked to a user – just ensure Guest role is present.
+        if ($guest->user) {
+            if (! $guest->user->hasRole('Guest')) {
+                $guest->user->assignRole('Guest');
+            }
+            // Admin-specified password update for existing linked user.
+            if ($plainPassword) {
+                $guest->user->password = $plainPassword; // cast will hash
+                $guest->user->save();
+            }
+            if ($sendReset && $guest->email) {
+                Password::sendResetLink(['email' => $guest->email]);
+            }
+            return;
+        }
+
+        // Try to reuse an existing user with same email.
+        $user = null;
+        if (! empty($guest->email)) {
+            $user = User::where('email', $guest->email)->first();
+        }
+
+        if (! $user) {
+            // Create a new minimal user for portal access.
+            $email = $guest->email ?: 'guest+' . $guest->id . '@example.invalid';
+            $password = $plainPassword ?: Str::random(12);
+
+            $user = User::create([
+                'name' => $guest->full_name,
+                'email' => $email,
+                // Password is hashed automatically by casts in User model.
+                'password' => $password,
+            ]);
+        }
+
+        if (! $user->hasRole('Guest')) {
+            $user->assignRole('Guest');
+        }
+
+        $guest->user_id = $user->id;
+        $guest->save();
+
+        if ($sendReset && $guest->email) {
+            Password::sendResetLink(['email' => $guest->email]);
+        }
+    }
+
+    /**
+     * NEW – SAFE ADDITION:
+     * Remove portal access for this guest (unlink user and remove Guest role),
+     * without affecting other admin logic.
+     */
+    public function revokePortal(Guest $guest): RedirectResponse
+    {
+        if ($guest->user) {
+            $user = $guest->user;
+            if ($user->hasRole('Guest')) {
+                $user->removeRole('Guest');
+            }
+        }
+
+        $guest->user_id = null;
+        $guest->save();
+
+        return redirect()->route('guests.show', $guest)->with('success', __('Guest portal access revoked.'));
     }
 }
