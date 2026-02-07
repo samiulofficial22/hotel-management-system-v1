@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use RuntimeException;
 
 class LoginController extends Controller
 {
@@ -23,7 +25,8 @@ class LoginController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        try {
+            if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
             $user = $request->user();
@@ -33,6 +36,12 @@ class LoginController extends Controller
             }
 
             return redirect()->intended(route('dashboard'));
+            }
+        } catch (RuntimeException $e) {
+            Log::warning('Login password hash error: ' . $e->getMessage(), ['email' => $credentials['email']]);
+            throw ValidationException::withMessages([
+                'email' => [__('auth.failed')],
+            ]);
         }
 
         throw ValidationException::withMessages([

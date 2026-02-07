@@ -5,26 +5,32 @@
     <h1 class="h3 mb-0">Housekeeping</h1>
 </div>
 
-{{-- Date navigator --}}
+{{-- Date + Room filter --}}
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body py-3">
         <form method="GET" action="{{ route('housekeeping.index') }}" class="d-flex flex-wrap align-items-center gap-3">
             <div class="d-flex align-items-center gap-2">
-                <a href="{{ route('housekeeping.index', ['date' => $date->copy()->subDay()->format('Y-m-d')]) }}" class="btn btn-outline-secondary btn-sm" title="Previous day">‹</a>
+                <a href="{{ route('housekeeping.index', ['date' => $date->copy()->subDay()->format('Y-m-d'), 'room_id' => $roomId]) }}" class="btn btn-outline-secondary btn-sm" title="Previous day">‹</a>
                 <label class="mb-0 fw-medium">{{ $date->format('l, F j, Y') }}</label>
-                <a href="{{ route('housekeeping.index', ['date' => $date->copy()->addDay()->format('Y-m-d')]) }}" class="btn btn-outline-secondary btn-sm" title="Next day">›</a>
+                <a href="{{ route('housekeeping.index', ['date' => $date->copy()->addDay()->format('Y-m-d'), 'room_id' => $roomId]) }}" class="btn btn-outline-secondary btn-sm" title="Next day">›</a>
             </div>
             <div class="d-flex align-items-center gap-2">
                 <input type="date" name="date" class="form-control form-control-sm" style="width: auto;" value="{{ $date->format('Y-m-d') }}">
-                <button type="submit" class="btn btn-primary btn-sm">Go</button>
+                <select name="room_id" class="form-select form-select-sm" style="width: auto;">
+                    <option value="">{{ __('All rooms') }}</option>
+                    @foreach($rooms as $r)
+                    <option value="{{ $r->id }}" {{ (isset($roomId) && $roomId == $r->id) ? 'selected' : '' }}>{{ $r->number }} ({{ $r->roomType->name ?? '-' }})</option>
+                    @endforeach
+                </select>
+                <button type="submit" class="btn btn-primary btn-sm">{{ __('Search') }}</button>
             </div>
             <a href="{{ route('housekeeping.index', ['date' => now()->format('Y-m-d')]) }}" class="btn btn-outline-secondary btn-sm">Today</a>
         </form>
     </div>
 </div>
 
-@can('housekeeping.manage')
-{{-- Assign room to user --}}
+@if(auth()->user()->can('housekeeping.manage') && !auth()->user()->hasRole('Housekeeping'))
+{{-- Admin/Manager only: Assign room to any housekeeper. Housekeepers cannot assign others. --}}
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-light py-2">
         <strong>Assign Room</strong>
@@ -46,7 +52,7 @@
                 <label class="form-label small text-muted mb-0">Assign to</label>
                 <select name="assigned_to" class="form-select form-select-sm" required>
                     @foreach($users as $u)
-                    <option value="{{ $u->id }}" {{ $u->id == auth()->id() ? 'selected' : '' }}>{{ $u->name }}</option>
+                    <option value="{{ $u->id }}">{{ $u->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -56,7 +62,32 @@
         </form>
     </div>
 </div>
-@endcan
+@else
+{{-- Housekeeper: Assign room to myself only --}}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-light py-2">
+        <strong>{{ __('Assign room to myself') }}</strong>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ route('housekeeping.assign') }}" class="row g-2 align-items-end">
+            @csrf
+            <input type="hidden" name="date" value="{{ $date->format('Y-m-d') }}">
+            <div class="col-md-4">
+                <label class="form-label small text-muted mb-0">Room</label>
+                <select name="room_id" class="form-select form-select-sm" required>
+                    <option value="">— {{ __('Select room') }} —</option>
+                    @foreach($rooms as $r)
+                    <option value="{{ $r->id }}">{{ $r->number }} ({{ $r->roomType->name ?? '-' }})</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-success btn-sm w-100">Assign</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
 
 {{-- Assignments list --}}
 <div class="card border-0 shadow-sm">
@@ -66,10 +97,12 @@
     </div>
     @if($assignments->isEmpty())
     <div class="card-body text-center text-muted py-5">
-        <p class="mb-0">No assignments for this date.</p>
-        @can('housekeeping.manage')
-        <p class="small mb-0 mt-1">Use the form above to assign a room to a staff member.</p>
-        @endcan
+        <p class="mb-0">{{ __('No assignments for this date.') }}</p>
+        @if(auth()->user()->can('housekeeping.manage') && !auth()->user()->hasRole('Housekeeping'))
+        <p class="small mb-0 mt-1">{{ __('Use the form above to assign a room to a staff member.') }}</p>
+        @else
+        <p class="small mb-0 mt-1">{{ __('Use the form above to assign a room to yourself.') }}</p>
+        @endif
     </div>
     @else
     <div class="table-responsive">
@@ -80,6 +113,11 @@
                     <th>Type</th>
                     <th>Assigned to</th>
                     <th>Status</th>
+                    <th>Assigned at</th>
+                    <th>Completed at</th>
+                    @if(auth()->user()->can('housekeeping.manage') && !auth()->user()->hasRole('Housekeeping'))
+                    <th>Completion notes</th>
+                    @endif
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
@@ -95,9 +133,23 @@
                         @php $cfg = \App\Models\HousekeepingAssignment::statusBadgeConfig($a->status); @endphp
                         <span class="badge {{ $cfg['class'] }}">{{ $cfg['label'] }}</span>
                     </td>
+                    <td class="small text-nowrap">{{ $a->created_at?->format('d M Y, H:i') ?? '-' }}</td>
+                    <td class="small text-nowrap">{{ $a->completed_at?->format('d M Y, H:i') ?? '-' }}</td>
+                    @if(auth()->user()->can('housekeeping.manage') && !auth()->user()->hasRole('Housekeeping'))
+                    <td class="small">{{ $a->status === 'completed' && $a->notes ? $a->notes : '-' }}</td>
+                    @endif
                     <td class="text-end">
+                        @if(auth()->user()->can('housekeeping.manage') && !auth()->user()->hasRole('Housekeeping'))
+                            <a href="{{ route('housekeeping.edit', $a) }}" class="btn btn-sm btn-outline-primary me-1">{{ __('Edit') }}</a>
+                            <form action="{{ route('housekeeping.destroy', $a) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('Are you sure you want to delete this assignment?') }}');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-outline-danger">{{ __('Delete') }}</button>
+                            </form>
+                            <span class="me-1"></span>
+                        @endif
                         @if($a->status === 'pending')
-                            @can('housekeeping.manage')
+                            @if(auth()->user()->can('housekeeping.manage') && !auth()->user()->hasRole('Housekeeping'))
                             <form action="{{ route('housekeeping.reassign', $a) }}" method="POST" class="d-inline-block me-1">
                                 @csrf
                                 <select name="assigned_to" class="form-select form-select-sm d-inline-block w-auto" onchange="this.form.submit()">
@@ -106,7 +158,7 @@
                                     @endforeach
                                 </select>
                             </form>
-                            @endcan
+                            @endif
                             <form action="{{ route('housekeeping.start', $a) }}" method="POST" class="d-inline">
                                 @csrf
                                 <button type="submit" class="btn btn-sm btn-info">Start</button>
@@ -137,7 +189,35 @@
                             </div>
                         @endif
                         @if($a->status === 'completed')
-                            <span class="text-muted small">{{ $a->completed_at?->format('H:i') ?? '-' }}</span>
+                            <span class="d-block small text-muted mb-1">{{ $a->notes ? \Illuminate\Support\Str::limit($a->notes, 40) : '-' }}</span>
+                            @php
+                                $canEditNotes = $a->assigned_to === auth()->id() || (auth()->user()->can('housekeeping.manage') && !auth()->user()->hasRole('Housekeeping'));
+                            @endphp
+                            @if($canEditNotes)
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editNotesModal{{ $a->id }}">{{ __('Edit') }}</button>
+                            <div class="modal fade" id="editNotesModal{{ $a->id }}" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <form action="{{ route('housekeeping.notes.update', $a) }}" method="POST">
+                                            @csrf
+                                            @method('PATCH')
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">{{ __('Edit completion notes') }} – Room {{ $a->room->number ?? '' }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <label class="form-label small">{{ __('Message / Notes') }}</label>
+                                                <textarea name="notes" class="form-control" rows="3" placeholder="{{ __('Completion notes...') }}">{{ $a->notes }}</textarea>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                                                <button type="submit" class="btn btn-primary">{{ __('Update') }}</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
                         @endif
                     </td>
                 </tr>

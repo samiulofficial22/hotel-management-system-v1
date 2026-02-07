@@ -7,9 +7,11 @@ use App\Services\GuestService;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class GuestController extends Controller
@@ -35,9 +37,10 @@ class GuestController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $rules = array_merge($this->service->rules(), [
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('guests', 'email')],
+            'phone' => ['nullable', 'string', 'max:30', Rule::unique('guests', 'phone')],
             'nid_photo_front' => ['nullable', 'file', 'image', 'max:2048'],
             'nid_photo_back' => ['nullable', 'file', 'image', 'max:2048'],
-            // NEW – SAFE ADDITION: optional portal password
             'portal_password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
         $validated = $request->validate($rules);
@@ -73,6 +76,8 @@ class GuestController extends Controller
     public function update(Request $request, Guest $guest): RedirectResponse
     {
         $rules = array_merge($this->service->rules(), [
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('guests', 'email')->ignore($guest->id)],
+            'phone' => ['nullable', 'string', 'max:30', Rule::unique('guests', 'phone')->ignore($guest->id)],
             'nid_photo_front' => ['nullable', 'file', 'image', 'max:2048'],
             'nid_photo_back' => ['nullable', 'file', 'image', 'max:2048'],
             'portal_password' => ['nullable', 'string', 'min:8', 'confirmed'],
@@ -85,7 +90,12 @@ class GuestController extends Controller
         $this->storeNidPhotos($guest, $photoFront, $photoBack);
 
         // NEW – SAFE ADDITION: Optional portal login creation/linking on update.
-        if ($request->boolean('create_portal_user')) {
+        // Also allow updating portal password/reset even if the checkbox was already enabled before.
+        if (
+            $request->boolean('create_portal_user') ||
+            $request->filled('portal_password') ||
+            $request->boolean('portal_send_reset')
+        ) {
             $this->ensurePortalUserForGuest(
                 $guest,
                 $request->input('portal_password') ?: null,
@@ -135,9 +145,9 @@ class GuestController extends Controller
             if (! $guest->user->hasRole('Guest')) {
                 $guest->user->assignRole('Guest');
             }
-            // Admin-specified password update for existing linked user.
+            // Admin-specified password update for existing linked user (always store hash in DB).
             if ($plainPassword) {
-                $guest->user->password = $plainPassword; // cast will hash
+                $guest->user->password = Hash::make($plainPassword);
                 $guest->user->save();
             }
             if ($sendReset && $guest->email) {
@@ -153,16 +163,19 @@ class GuestController extends Controller
         }
 
         if (! $user) {
-            // Create a new minimal user for portal access.
+            // Create a new minimal user for portal access. Password always stored as hash in DB.
             $email = $guest->email ?: 'guest+' . $guest->id . '@example.invalid';
-            $password = $plainPassword ?: Str::random(12);
-
             $user = User::create([
                 'name' => $guest->full_name,
                 'email' => $email,
-                // Password is hashed automatically by casts in User model.
-                'password' => $password,
+                'password' => Hash::make($plainPassword ?: Str::random(12)),
             ]);
+        } else {
+            // Reusing existing user by email – update password if provided (always store hash).
+            if ($plainPassword) {
+                $user->password = Hash::make($plainPassword);
+                $user->save();
+            }
         }
 
         if (! $user->hasRole('Guest')) {

@@ -2,12 +2,21 @@
 @section('title', 'Booking Calendar')
 @section('content')
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
-    <h1 class="h3 mb-0">Booking Calendar</h1>
-    <div class="d-flex gap-2 align-items-center">
-        <a href="{{ route('bookings.index') }}" class="btn btn-outline-secondary">List</a>
-        <a href="{{ route('bookings.calendar', ['start' => $start->copy()->subMonth()->startOfMonth()->format('Y-m-d'), 'end' => $start->copy()->subMonth()->endOfMonth()->format('Y-m-d')]) }}" class="btn btn-outline-primary">&larr; {{ $start->copy()->subMonth()->format('M Y') }}</a>
+    <h1 class="h3 mb-0">{{ __('messages.Booking Calendar') }}</h1>
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+        <form action="{{ route('bookings.calendar') }}" method="GET" class="d-flex gap-1 align-items-center">
+            <input type="hidden" name="start" value="{{ $start->format('Y-m-d') }}">
+            <input type="hidden" name="end" value="{{ $end->format('Y-m-d') }}">
+            <input type="search" name="q" class="form-control form-control-sm" style="width: 180px;" placeholder="{{ __('messages.Search by guest, room, booking #') }}" value="{{ old('q', $search ?? '') }}" aria-label="{{ __('messages.Search') }}">
+            <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-search"></i></button>
+            @if(!empty($search))
+                <a href="{{ route('bookings.calendar', ['start' => $start->format('Y-m-d'), 'end' => $end->format('Y-m-d')]) }}" class="btn btn-outline-danger btn-sm" title="{{ __('messages.Cancel') }}">{{ __('messages.Clear') }}</a>
+            @endif
+        </form>
+        <a href="{{ route('bookings.index') }}" class="btn btn-outline-secondary btn-sm">{{ __('messages.List') }}</a>
+        <a href="{{ route('bookings.calendar', array_filter(['start' => $start->copy()->subMonth()->startOfMonth()->format('Y-m-d'), 'end' => $start->copy()->subMonth()->endOfMonth()->format('Y-m-d'), 'q' => $search ?? null])) }}" class="btn btn-outline-primary btn-sm">&larr; {{ $start->copy()->subMonth()->format('M Y') }}</a>
         <span class="fw-bold text-nowrap">{{ $start->format('F Y') }}</span>
-        <a href="{{ route('bookings.calendar', ['start' => $start->copy()->addMonth()->startOfMonth()->format('Y-m-d'), 'end' => $start->copy()->addMonth()->endOfMonth()->format('Y-m-d')]) }}" class="btn btn-outline-primary">{{ $start->copy()->addMonth()->format('M Y') }} &rarr;</a>
+        <a href="{{ route('bookings.calendar', array_filter(['start' => $start->copy()->addMonth()->startOfMonth()->format('Y-m-d'), 'end' => $start->copy()->addMonth()->endOfMonth()->format('Y-m-d'), 'q' => $search ?? null])) }}" class="btn btn-outline-primary btn-sm">{{ $start->copy()->addMonth()->format('M Y') }} &rarr;</a>
     </div>
 </div>
 

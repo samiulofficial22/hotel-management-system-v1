@@ -45,9 +45,9 @@ class BookingService
         return $this->bookingRepository->find($id);
     }
 
-    public function getForDateRange(Carbon $start, Carbon $end): Collection
+    public function getForDateRange(Carbon $start, Carbon $end, ?string $search = null): Collection
     {
-        return $this->bookingRepository->getForDateRange($start, $end);
+        return $this->bookingRepository->getForDateRange($start, $end, $search);
     }
 
     public function paginate(int $perPage = 15, ?string $status = null): LengthAwarePaginator

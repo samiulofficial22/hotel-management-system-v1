@@ -7,6 +7,7 @@ use App\Models\Guest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class GuestPortalController extends Controller
@@ -65,22 +66,25 @@ class GuestPortalController extends Controller
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:30'],
+            'profile_pic' => ['nullable', 'image', 'mimes:jpeg,jpg,png', 'max:2048'],
+            'phone' => ['nullable', 'string', 'max:30', Rule::unique('guests', 'phone')->ignore($guest->id)],
             'nationality' => ['nullable', 'string', 'max:100'],
             'address' => ['nullable', 'string'],
             'city' => ['nullable', 'string', 'max:100'],
             'country' => ['nullable', 'string', 'max:100'],
         ]);
 
-        // Update user basic info
+        // Update user name and profile picture
         $user->name = $data['name'];
-        if (! empty($data['email'])) {
-            $user->email = $data['email'];
+        if ($request->hasFile('profile_pic')) {
+            if ($user->profile_pic) {
+                Storage::disk('public')->delete($user->profile_pic);
+            }
+            $user->profile_pic = $request->file('profile_pic')->store('profile-pics', 'public');
         }
         $user->save();
 
-        // Update guest contact info
+        // Update guest contact info (email stays same as login – not editable by guest)
         $guest->phone = $data['phone'] ?? $guest->phone;
         $guest->nationality = $data['nationality'] ?? $guest->nationality;
         $guest->address = $data['address'] ?? $guest->address;

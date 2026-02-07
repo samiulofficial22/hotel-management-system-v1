@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
@@ -48,8 +49,20 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Always store password as bcrypt hash in DB (plain text never saved).
+     * If value is already a bcrypt hash, store as-is to avoid double-hashing.
+     */
+    public function setPasswordAttribute(?string $value): void
+    {
+        if ($value === null || $value === '') {
+            return;
+        }
+        $isBcrypt = preg_match('/^\$2[ayx]\$\d{2}\$/', $value) === 1;
+        $this->attributes['password'] = $isBcrypt ? $value : Hash::make($value);
     }
 
     /** Profile picture URL; default avatar when not set. */

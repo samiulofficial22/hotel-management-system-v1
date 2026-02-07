@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Guest;
 use App\Models\User;
+use App\Notifications\BookingRequestReceivedNotification;
 use App\Services\BookingService;
 use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -23,7 +26,7 @@ class GuestApprovalController extends Controller
     /** Pending guest booking requests list (admin / guest.manage). */
     public function index(Request $request): View
     {
-        $bookings = Booking::with(['guest', 'room'])
+        $bookings = Booking::with(['guest', 'room.roomType'])
             ->where('status', Booking::STATUS_PENDING)
             ->orderByDesc('created_at')
             ->paginate($request->integer('per_page', 15));
@@ -55,7 +58,7 @@ class GuestApprovalController extends Controller
             $user = User::create([
                 'name' => $guest->full_name,
                 'email' => $email,
-                'password' => $password, // hashed by casts
+                'password' => Hash::make($password),
             ]);
             $user->assignRole('Guest');
 
@@ -73,6 +76,8 @@ class GuestApprovalController extends Controller
         $booking->load(['guest', 'room']);
         $this->notificationService->sendBookingConfirmation($booking);
 
+        $this->markBookingRequestNotificationsRead($booking);
+
         return redirect()->route('guest.requests.index')
             ->with('success', __('Booking approved and guest portal access enabled.'));
     }
@@ -89,8 +94,22 @@ class GuestApprovalController extends Controller
             'status' => Booking::STATUS_CANCELLED,
         ]);
 
+        $this->markBookingRequestNotificationsRead($booking);
+
         return redirect()->route('guest.requests.index')
             ->with('success', __('Booking request rejected.'));
+    }
+
+    /** Mark all notifications for this booking request as read (badge count goes down after approve/reject). */
+    private function markBookingRequestNotificationsRead(Booking $booking): void
+    {
+        $type = BookingRequestReceivedNotification::class;
+        $bookingId = $booking->id;
+        DatabaseNotification::query()
+            ->where('type', $type)
+            ->get()
+            ->filter(fn ($n) => ($n->data['booking_id'] ?? null) == $bookingId)
+            ->each(fn ($n) => $n->update(['read_at' => now()]));
     }
 }
 

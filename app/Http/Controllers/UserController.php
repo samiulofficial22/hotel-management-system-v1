@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -12,12 +11,41 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
-    public function index(): View
+    public function index(Request $request)
     {
-        /** @var LengthAwarePaginator $users */
-        $users = User::with('roles')->orderBy('name')->paginate(20);
+        $searchStaff = trim($request->input('q_staff', ''));
+        $searchGuests = trim($request->input('q_guests', ''));
+        $likeStaff = $searchStaff ? '%' . $searchStaff . '%' : null;
+        $likeGuests = $searchGuests ? '%' . $searchGuests . '%' : null;
 
-        return view('users.index', compact('users'));
+        $guestsQuery = User::role('Guest')->with(['roles', 'guest'])->orderByDesc('created_at');
+        if ($likeGuests) {
+            $guestsQuery->where(function ($q) use ($likeGuests) {
+                $q->where('name', 'like', $likeGuests)->orWhere('email', 'like', $likeGuests);
+            });
+        }
+        $guests = $guestsQuery->paginate(15, ['*'], 'guests_page')->withQueryString();
+
+        $staffQuery = User::whereDoesntHave('roles', fn ($q) => $q->where('name', 'Guest'))
+            ->with('roles')
+            ->orderBy('name');
+        if ($likeStaff) {
+            $staffQuery->where(function ($q) use ($likeStaff) {
+                $q->where('name', 'like', $likeStaff)->orWhere('email', 'like', $likeStaff);
+            });
+        }
+        $officeStaff = $staffQuery->paginate(15, ['*'], 'staff_page')->withQueryString();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'staff_rows' => view('users.partials.staff-rows', compact('officeStaff'))->render(),
+                'staff_pagination' => $officeStaff->links()->render(),
+                'guests_rows' => view('users.partials.guests-rows', compact('guests'))->render(),
+                'guests_pagination' => $guests->links()->render(),
+            ]);
+        }
+
+        return view('users.index', compact('guests', 'officeStaff', 'searchStaff', 'searchGuests'));
     }
 
     public function create(): View

@@ -82,17 +82,21 @@ class BookingController extends Controller
 
     public function destroy(Booking $booking): RedirectResponse
     {
+        // Mark booking as cancelled (keeps room status consistent), then soft-delete so it no longer appears in lists.
         $this->service->cancel($booking);
-        return redirect()->route('bookings.index')->with('success', __('Booking cancelled.'));
+        $booking->delete();
+
+        return redirect()->route('bookings.index')->with('success', __('Booking deleted.'));
     }
 
-    /** Calendar view: bookings for date range. */
+    /** Calendar view: bookings for date range with optional search. */
     public function calendar(Request $request): View
     {
         $start = Carbon::parse($request->input('start', now()->startOfMonth()));
         $end = Carbon::parse($request->input('end', now()->endOfMonth()));
-        $bookings = $this->service->getForDateRange($start, $end);
-        return view('bookings.calendar', compact('bookings', 'start', 'end'));
+        $search = $request->input('q');
+        $bookings = $this->service->getForDateRange($start, $end, $search);
+        return view('bookings.calendar', compact('bookings', 'start', 'end', 'search'));
     }
 
     public function checkIn(Booking $booking): RedirectResponse

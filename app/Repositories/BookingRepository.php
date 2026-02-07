@@ -37,16 +37,26 @@ class BookingRepository
         return $q->get();
     }
 
-    public function getForDateRange(Carbon $start, Carbon $end): Collection
+    public function getForDateRange(Carbon $start, Carbon $end, ?string $search = null): Collection
     {
-        return $this->model->newQuery()
+        $q = $this->model->newQuery()
             ->with(['guest', 'room.roomType'])
             ->where('check_in_date', '<=', $end->toDateString())
             ->where('check_out_date', '>=', $start->toDateString())
             ->whereNotIn('status', [Booking::STATUS_CANCELLED])
             ->orderBy('check_in_date')
-            ->orderBy('room_id')
-            ->get();
+            ->orderBy('room_id');
+
+        if ($search !== null && trim($search) !== '') {
+            $term = '%' . trim($search) . '%';
+            $q->where(function ($query) use ($term) {
+                $query->where('booking_number', 'like', $term)
+                    ->orWhereHas('guest', fn ($q) => $q->where('first_name', 'like', $term)->orWhere('last_name', 'like', $term))
+                    ->orWhereHas('room', fn ($q) => $q->where('number', 'like', $term));
+            });
+        }
+
+        return $q->get();
     }
 
     public function paginate(int $perPage = 15, ?string $status = null): LengthAwarePaginator

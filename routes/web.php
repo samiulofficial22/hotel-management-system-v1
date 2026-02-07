@@ -63,8 +63,11 @@ Route::middleware(['auth'])->group(function (): void {
     Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
 
-    // Guest panel (guest role only – checked in controller to avoid custom middleware dependency)
-    Route::prefix('guest')->name('guest.')->group(function (): void {
+    // Notifications (e.g. room assigned for housekeepers)
+    Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+
+    // Guest panel (guest role only; portal access required – no access redirects to login)
+    Route::prefix('guest')->name('guest.')->middleware('guest.portal')->group(function (): void {
         Route::get('/', [\App\Http\Controllers\GuestPortalController::class, 'dashboard'])->name('dashboard');
         Route::get('/profile', [\App\Http\Controllers\GuestPortalController::class, 'profile'])->name('profile');
         Route::post('/profile', [\App\Http\Controllers\GuestPortalController::class, 'updateProfile'])->name('profile.update');
@@ -156,9 +159,13 @@ Route::middleware(['auth'])->group(function (): void {
     Route::middleware('permission:housekeeping.view')->group(function (): void {
         Route::get('/housekeeping', [HousekeepingController::class, 'index'])->name('housekeeping.index');
         Route::post('/housekeeping/assign', [HousekeepingController::class, 'assign'])->name('housekeeping.assign')->middleware('permission:housekeeping.manage');
+        Route::get('/housekeeping/{assignment}/edit', [HousekeepingController::class, 'edit'])->name('housekeeping.edit')->middleware('permission:housekeeping.manage');
+        Route::put('/housekeeping/{assignment}', [HousekeepingController::class, 'update'])->name('housekeeping.update')->middleware('permission:housekeeping.manage');
+        Route::delete('/housekeeping/{assignment}', [HousekeepingController::class, 'destroy'])->name('housekeeping.destroy')->middleware('permission:housekeeping.manage');
         Route::post('/housekeeping/{assignment}/reassign', [HousekeepingController::class, 'reassign'])->name('housekeeping.reassign')->middleware('permission:housekeeping.manage');
         Route::post('/housekeeping/{assignment}/start', [HousekeepingController::class, 'start'])->name('housekeeping.start')->middleware('permission:housekeeping.manage');
         Route::post('/housekeeping/{assignment}/complete', [HousekeepingController::class, 'complete'])->name('housekeeping.complete')->middleware('permission:housekeeping.manage');
+        Route::patch('/housekeeping/{assignment}/notes', [HousekeepingController::class, 'updateNotes'])->name('housekeeping.notes.update')->middleware('permission:housekeeping.manage');
     });
     Route::middleware('permission:minibar.manage')->group(function (): void {
         Route::get('/minibar', [MinibarController::class, 'index'])->name('minibar.index');

@@ -4,27 +4,24 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
     /**
      * Create admin and staff users with roles. Every role has at least one user.
-     * Password for all: password
+     * Password for all: password (hashed by User model's cast)
      */
     public function run(): void
     {
-        $password = Hash::make('password');
-
         $admin = User::firstOrCreate(
             ['email' => 'admin@hotel.test'],
-            ['name' => 'Admin User', 'password' => $password, 'language_preference' => 'en']
+            ['name' => 'Admin User', 'password' => 'password', 'language_preference' => 'en']
         );
         $admin->assignRole('Admin');
 
         $manager = User::firstOrCreate(
             ['email' => 'manager@hotel.test'],
-            ['name' => 'Manager User', 'password' => $password, 'language_preference' => 'en']
+            ['name' => 'Manager User', 'password' => 'password', 'language_preference' => 'en']
         );
         if (!$manager->hasRole('Manager')) {
             $manager->assignRole('Manager');
@@ -32,7 +29,7 @@ class UserSeeder extends Seeder
 
         $receptionist = User::firstOrCreate(
             ['email' => 'reception@hotel.test'],
-            ['name' => 'Receptionist User', 'password' => $password, 'language_preference' => 'en']
+            ['name' => 'Receptionist User', 'password' => 'password', 'language_preference' => 'en']
         );
         if (!$receptionist->hasRole('Receptionist')) {
             $receptionist->assignRole('Receptionist');
@@ -40,7 +37,7 @@ class UserSeeder extends Seeder
 
         $housekeeping = User::firstOrCreate(
             ['email' => 'housekeeping@hotel.test'],
-            ['name' => 'Housekeeping User', 'password' => $password, 'language_preference' => 'en']
+            ['name' => 'Housekeeping User', 'password' => 'password', 'language_preference' => 'en']
         );
         if (!$housekeeping->hasRole('Housekeeping')) {
             $housekeeping->assignRole('Housekeeping');
@@ -48,7 +45,7 @@ class UserSeeder extends Seeder
 
         $accountant = User::firstOrCreate(
             ['email' => 'accountant@hotel.test'],
-            ['name' => 'Accountant User', 'password' => $password, 'language_preference' => 'en']
+            ['name' => 'Accountant User', 'password' => 'password', 'language_preference' => 'en']
         );
         if (!$accountant->hasRole('Accountant')) {
             $accountant->assignRole('Accountant');

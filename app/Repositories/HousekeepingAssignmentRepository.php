@@ -10,13 +10,16 @@ class HousekeepingAssignmentRepository
 {
     public function __construct(protected HousekeepingAssignment $model) {}
 
-    public function forDate(Carbon $date, ?int $assignedTo = null): Collection
+    public function forDate(Carbon $date, ?int $assignedTo = null, ?int $roomId = null): Collection
     {
         $q = $this->model->newQuery()->with(['room.roomType', 'assignedTo'])
             ->where('date', $date->toDateString())
             ->orderBy('room_id');
         if ($assignedTo !== null) {
             $q->where('assigned_to', $assignedTo);
+        }
+        if ($roomId !== null) {
+            $q->where('room_id', $roomId);
         }
         return $q->get();
     }

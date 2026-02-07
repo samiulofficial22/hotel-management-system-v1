@@ -14,6 +14,10 @@
                 <th>{{ __('Room') }}</th>
                 <th>{{ __('Check-in') }}</th>
                 <th>{{ __('Check-out') }}</th>
+                <th>{{ __('Adults') }}</th>
+                <th>{{ __('Children') }}</th>
+                <th>{{ __('Special requests') }}</th>
+                <th>{{ __('messages.Requested at') }}</th>
                 <th>{{ __('Status') }}</th>
                 <th></th>
             </tr>
@@ -29,9 +33,24 @@
                             {{ $b->guest?->email ?? $b->guest?->phone ?? '' }}
                         </small>
                     </td>
-                    <td>{{ optional($b->room)->number ?? '-' }}</td>
+                    <td>
+                        {{ optional($b->room)->number ?? '-' }}
+                        @if($b->room?->roomType)
+                            <br><small class="text-muted">{{ $b->room->roomType->name }}</small>
+                        @endif
+                    </td>
                     <td>{{ $b->check_in_date?->format('Y-m-d') ?? '-' }}</td>
                     <td>{{ $b->check_out_date?->format('Y-m-d') ?? '-' }}</td>
+                    <td>{{ $b->adults ?? '-' }}</td>
+                    <td>{{ $b->children ?? '-' }}</td>
+                    <td>
+                        @if(!empty($b->special_requests))
+                            <span title="{{ $b->special_requests }}">{{ Str::limit($b->special_requests, 30) }}</span>
+                        @else
+                            <span class="text-muted">-</span>
+                        @endif
+                    </td>
+                    <td><small>{{ $b->created_at?->format('M d, Y H:i') ?? '-' }}</small></td>
                     <td><span class="badge {{ $badge['class'] }}">{{ __($badge['label']) }}</span></td>
                     <td class="text-end">
                         @can('guest.manage')
@@ -48,7 +67,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="text-muted">{{ __('No pending booking requests.') }}</td>
+                    <td colspan="12" class="text-muted">{{ __('No pending booking requests.') }}</td>
                 </tr>
             @endforelse
         </tbody>

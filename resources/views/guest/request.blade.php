@@ -1,7 +1,8 @@
-@extends('layouts.app')
-@section('title', __('Request a booking'))
+@extends(isset($useAppLayout) && $useAppLayout ? 'layouts.app' : 'layouts.public')
+@section('title', __('Request a booking') . ' - ' . __('messages.Hotel'))
 @section('content')
-<h1 class="h3 mb-4">{{ __('Request a booking') }}</h1>
+<div class="{{ isset($useAppLayout) && $useAppLayout ? '' : 'container py-5' }}">
+    <h1 class="h3 mb-4">{{ __('Request a booking') }}</h1>
 
 @if(session('success'))
     <div class="alert alert-success">{{ session('success') }}</div>
@@ -9,6 +10,9 @@
 
 <form method="POST" action="{{ route('booking.request.store') }}">
     @csrf
+    @if(isset($guest) && $guest)
+        <input type="hidden" name="guest_id" value="{{ $guest->id }}">
+    @endif
 
     <div class="card mb-4">
         <div class="card-header">{{ __('Personal information') }}</div>
@@ -16,24 +20,24 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">{{ __('First name') }} *</label>
-                    <input type="text" name="first_name" class="form-control @error('first_name') is-invalid @enderror" value="{{ old('first_name') }}" required>
+                    <input type="text" name="first_name" class="form-control @error('first_name') is-invalid @enderror" value="{{ old('first_name', isset($guest) && $guest ? $guest->first_name : '') }}" required>
                     @error('first_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">{{ __('Last name') }} *</label>
-                    <input type="text" name="last_name" class="form-control @error('last_name') is-invalid @enderror" value="{{ old('last_name') }}" required>
+                    <input type="text" name="last_name" class="form-control @error('last_name') is-invalid @enderror" value="{{ old('last_name', isset($guest) && $guest ? $guest->last_name : '') }}" required>
                     @error('last_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">{{ __('Email') }}</label>
-                    <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}">
+                    <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', isset($guest) && $guest ? $guest->email : '') }}">
                     @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">{{ __('Phone') }}</label>
-                    <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone') }}">
+                    <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone', isset($guest) && $guest ? $guest->phone : '') }}">
                     <small class="text-muted d-block">{{ __('Provide at least email or phone.') }}</small>
                     @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
@@ -88,7 +92,13 @@
         </div>
     </div>
 
-    <button type="submit" class="btn btn-primary">{{ __('Submit request') }}</button>
+    <div class="d-flex align-items-center gap-2">
+        <button type="submit" class="btn btn-primary">{{ __('Submit request') }}</button>
+        @if(isset($useAppLayout) && $useAppLayout)
+            <a href="{{ route('guest.dashboard') }}" class="btn btn-outline-secondary">{{ __('Back to dashboard') }}</a>
+        @endif
+    </div>
 </form>
+</div>
 @endsection
 

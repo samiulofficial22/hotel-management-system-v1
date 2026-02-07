@@ -13,6 +13,7 @@
             <thead>
                 <tr>
                     <th>{{ __('Booking #') }}</th>
+                    <th>{{ __('Booked on') }}</th>
                     <th>{{ __('Room') }}</th>
                     <th>{{ __('Check-in') }}</th>
                     <th>{{ __('Check-out') }}</th>
@@ -24,6 +25,7 @@
                     @php($badge = \App\Models\Booking::statusBadgeConfig($b->status))
                     <tr>
                         <td>{{ $b->booking_number }}</td>
+                        <td>{{ $b->created_at?->format('d M Y') ?? '-' }}</td>
                         <td>{{ optional($b->room)->number ?? '-' }}</td>
                         <td>{{ $b->check_in_date?->format('Y-m-d') ?? '-' }}</td>
                         <td>{{ $b->check_out_date?->format('Y-m-d') ?? '-' }}</td>
@@ -31,7 +33,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="text-muted">{{ __('No bookings found.') }}</td>
+                        <td colspan="6" class="text-muted">{{ __('No bookings found.') }}</td>
                     </tr>
                 @endforelse
             </tbody>

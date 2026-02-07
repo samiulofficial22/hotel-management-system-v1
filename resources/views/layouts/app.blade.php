@@ -27,7 +27,7 @@
     <!-- Sidebar -->
     <aside class="sidebar bg-primary flex-shrink-0 d-flex flex-column" id="sidebar">
         <div class="d-flex align-items-center justify-content-between p-3 border-bottom border-secondary border-opacity-25">
-            <a href="{{ route('dashboard') }}" class="text-white text-decoration-none fw-bold">
+            <a href="{{ auth()->user()->hasRole('Guest') ? route('guest.dashboard') : route('dashboard') }}" class="text-white text-decoration-none fw-bold">
                 <i class="bi bi-building"></i> {{ __('messages.Hotel') }}
             </a>
             <button class="btn btn-link text-white d-lg-none p-0 sidebar-close" type="button" aria-label="{{ __('messages.Close sidebar') }}">
@@ -35,6 +35,30 @@
             </button>
         </div>
         <nav class="nav flex-column p-2">
+            @if(auth()->user()->hasRole('Guest'))
+                <a class="nav-link {{ request()->routeIs('guest.dashboard') ? 'active' : '' }}" href="{{ route('guest.dashboard') }}">
+                    <i class="bi bi-speedometer2"></i> {{ __('Dashboard') }}
+                </a>
+                <a class="nav-link {{ request()->routeIs('booking.request') ? 'active' : '' }}" href="{{ route('booking.request') }}">
+                    <i class="bi bi-calendar-plus"></i> {{ __('Book a room') }}
+                </a>
+                <a class="nav-link {{ request()->routeIs('guest.bookings') ? 'active' : '' }}" href="{{ route('guest.bookings') }}">
+                    <i class="bi bi-calendar-check"></i> {{ __('My bookings') }}
+                </a>
+                <a class="nav-link {{ request()->routeIs('guest.profile') || request()->routeIs('guest.profile.update') ? 'active' : '' }}" href="{{ route('guest.profile') }}">
+                    <i class="bi bi-person"></i> {{ __('My profile') }}
+                </a>
+            @elseif(auth()->user()->hasRole('Housekeeping'))
+                <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
+                    <i class="bi bi-speedometer2"></i> {{ __('messages.Dashboard') }}
+                </a>
+                <a class="nav-link {{ request()->routeIs('housekeeping.*') ? 'active' : '' }}" href="{{ route('housekeeping.index') }}">
+                    <i class="bi bi-bucket"></i> {{ __('Room cleaning assignments') }}
+                </a>
+                <a class="nav-link {{ request()->routeIs('profile.edit') ? 'active' : '' }}" href="{{ route('profile.edit') }}">
+                    <i class="bi bi-person"></i> {{ __('My profile') }}
+                </a>
+            @else
             <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
                 <i class="bi bi-speedometer2"></i> {{ __('messages.Dashboard') }}
             </a>
@@ -142,6 +166,7 @@
                 <i class="bi bi-people"></i> {{ __('messages.Users') }}
             </a>
             @endcan
+            @endif
         </nav>
     </aside>
 
@@ -159,6 +184,21 @@
                     <h1 class="h5 mb-0 text-muted">@yield('title', __('messages.Hotel Management'))</h1>
                 </div>
                 <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                    @if(auth()->user()->can('guest.manage') || auth()->user()->hasRole('Housekeeping') || auth()->user()->can('housekeeping.manage'))
+                    @php
+                        try {
+                            $unreadCount = auth()->user()->unreadNotifications()->count();
+                        } catch (\Throwable $e) {
+                            $unreadCount = 0;
+                        }
+                    @endphp
+                    <a href="{{ auth()->user()->can('guest.manage') ? route('guest.requests.index') : route('notifications.index') }}" class="btn btn-link text-dark position-relative p-2 text-decoration-none" title="{{ __('messages.Notifications') }}" aria-label="{{ __('messages.Notifications') }}">
+                        <i class="bi bi-bell fs-5"></i>
+                        @if($unreadCount > 0)
+                            <span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; min-width: 1.25rem;">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
+                        @endif
+                    </a>
+                    @endif
                     <form action="{{ route('language.switch') }}" method="POST" class="mb-0">
                         @csrf
                         <select name="locale" class="form-select form-select-sm" style="width: auto; min-width: 5rem;" onchange="this.form.submit()">
@@ -167,7 +207,7 @@
                             @endforeach
                         </select>
                     </form>
-                    <a href="{{ route('profile.edit') }}" class="d-flex align-items-center gap-2 text-decoration-none text-muted small" title="{{ __('Edit Profile') }}">
+                    <a href="{{ auth()->user()->hasRole('Guest') ? route('guest.profile') : route('profile.edit') }}" class="d-flex align-items-center gap-2 text-decoration-none text-muted small" title="{{ __('Edit Profile') }}">
                         <img src="{{ auth()->user()->profile_pic_url }}" alt="" class="rounded-circle" width="32" height="32" style="object-fit: cover;">
                         <span class="d-none d-sm-inline">{{ auth()->user()->name }}</span>
                         <i class="bi bi-pencil-square opacity-75 d-none d-md-inline"></i>

@@ -16,9 +16,9 @@ class HousekeepingService
         protected RoomRepository $roomRepository
     ) {}
 
-    public function assignmentsForDate(Carbon $date, ?int $userId = null): Collection
+    public function assignmentsForDate(Carbon $date, ?int $userId = null, ?int $roomId = null): Collection
     {
-        return $this->assignmentRepository->forDate($date, $userId);
+        return $this->assignmentRepository->forDate($date, $userId, $roomId);
     }
 
     public function allRooms(): Collection

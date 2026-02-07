@@ -41,8 +41,8 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $roles = [
             'Admin' => $permissions, // includes departments.manage
-            'Manager' => ['dashboard.view', 'room_types.manage', 'rooms.manage', 'guests.manage', 'bookings.manage', 'bookings.checkin_checkout', 'invoices.manage', 'payments.manage', 'reports.view', 'pos.manage', 'pos.view', 'kitchen.manage', 'kitchen.view', 'banquet.manage', 'banquet.view', 'housekeeping.manage', 'housekeeping.view', 'minibar.manage', 'minibar.view', 'store.manage', 'store.view', 'maintenance.manage', 'maintenance.view', 'departments.manage'],
-            'Receptionist' => ['dashboard.view', 'rooms.manage', 'guests.manage', 'bookings.manage', 'bookings.checkin_checkout', 'invoices.manage', 'payments.manage', 'pos.manage', 'pos.view', 'kitchen.view', 'banquet.view', 'maintenance.view'],
+            'Manager' => ['dashboard.view', 'room_types.manage', 'rooms.manage', 'guests.manage', 'bookings.manage', 'bookings.checkin_checkout', 'invoices.manage', 'payments.manage', 'reports.view', 'pos.manage', 'pos.view', 'kitchen.manage', 'kitchen.view', 'banquet.manage', 'banquet.view', 'housekeeping.manage', 'housekeeping.view', 'minibar.manage', 'minibar.view', 'store.manage', 'store.view', 'maintenance.manage', 'maintenance.view', 'departments.manage', 'guest.manage'],
+            'Receptionist' => ['dashboard.view', 'rooms.manage', 'guests.manage', 'bookings.manage', 'bookings.checkin_checkout', 'invoices.manage', 'payments.manage', 'pos.manage', 'pos.view', 'kitchen.view', 'banquet.view', 'maintenance.view', 'guest.manage'],
             'Housekeeping' => ['dashboard.view', 'rooms.manage', 'housekeeping.manage', 'housekeeping.view', 'minibar.view'],
             'Accountant' => ['dashboard.view', 'invoices.manage', 'payments.manage', 'reports.view', 'pos.view', 'accounts.manage', 'accounts.view', 'payroll.manage', 'payroll.view'],
             // NEW – SAFE ADDITION: Guest role for portal access only (no admin permissions by default).

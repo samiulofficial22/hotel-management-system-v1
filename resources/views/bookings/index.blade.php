@@ -7,6 +7,9 @@
         <p class="text-muted small mb-0">Total: <strong>{{ $bookings->total() }}</strong> {{ $bookings->total() === 1 ? 'booking' : 'bookings' }}</p>
     </div>
     <div class="d-flex gap-2 flex-wrap">
+        @can('guest.manage')
+        <a href="{{ route('guest.requests.index') }}" class="btn btn-outline-warning">{{ __('messages.Guest requests') }}</a>
+        @endcan
         <a href="{{ route('bookings.create') }}" class="btn btn-primary">New Booking</a>
         <a href="{{ route('bookings.calendar') }}" class="btn btn-outline-primary">Calendar</a>
     </div>

@@ -12,6 +12,9 @@
             <div class="col-md-5">
                 <div class="card shadow">
                     <div class="card-body p-4">
+                        @if(session('error'))
+                            <div class="alert alert-warning mb-3">{{ session('error') }}</div>
+                        @endif
                         <h4 class="card-title mb-4">Hotel Management – Login</h4>
                         <form method="POST" action="{{ route('login') }}">
                             @csrf

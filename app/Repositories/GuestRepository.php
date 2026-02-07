@@ -47,8 +47,7 @@ class GuestRepository
     public function paginate(int $perPage = 15): LengthAwarePaginator
     {
         return $this->model->newQuery()
-            ->orderBy('last_name')
-            ->orderBy('first_name')
+            ->orderByDesc('created_at')
             ->paginate($perPage);
     }
 
@@ -57,7 +56,7 @@ class GuestRepository
      */
     public function paginateWithSearch(int $perPage = 15, ?string $search = null): LengthAwarePaginator
     {
-        $q = $this->model->newQuery()->orderBy('last_name')->orderBy('first_name');
+        $q = $this->model->newQuery()->orderByDesc('created_at');
         if ($search !== null && trim($search) !== '') {
             $term = '%' . trim($search) . '%';
             $q->where(function ($query) use ($term) {

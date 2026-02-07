@@ -11,6 +11,15 @@ class Guest extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected static function booted(): void
+    {
+        static::deleting(function (Guest $guest): void {
+            foreach ($guest->bookings()->get() as $booking) {
+                $booking->delete();
+            }
+        });
+    }
+
     protected $fillable = [
         'first_name',
         'last_name',

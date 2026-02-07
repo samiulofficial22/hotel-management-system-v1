@@ -30,10 +30,19 @@
 
 <div class="table-responsive">
 <table class="table table-striped">
-<thead><tr><th>Name</th><th>Email</th><th>Phone</th><th></th></tr></thead>
+<thead>
+    <tr>
+        <th style="width: 60px;">#</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th></th>
+    </tr>
+</thead>
 <tbody>
 @foreach($guests as $g)
 <tr>
+<td>{{ ($guests->currentPage() - 1) * $guests->perPage() + $loop->iteration }}</td>
 <td>{{ $g->full_name }}</td>
 <td>{{ $g->email ?? '-' }}</td>
 <td>{{ $g->phone ?? '-' }}</td>

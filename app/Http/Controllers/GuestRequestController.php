@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Guest;
+use App\Models\User;
+use App\Notifications\BookingRequestReceivedNotification;
 use App\Services\BookingService;
 use App\Services\GuestService;
 use App\Services\RoomService;
@@ -19,17 +21,24 @@ class GuestRequestController extends Controller
         protected RoomService $roomService
     ) {}
 
-    /** Public booking request form (no login). */
+    /** Public booking request form (no login). Logged-in guests see app layout and pre-filled data. */
     public function create(): View
     {
         $rooms = $this->roomService->all(true);
-        return view('guest.request', compact('rooms'));
+        $guest = null;
+        $useAppLayout = false;
+        if (auth()->check() && auth()->user()->hasRole('Guest') && auth()->user()->guest) {
+            $guest = auth()->user()->guest;
+            $useAppLayout = true;
+        }
+        return view('guest.request', compact('rooms', 'guest', 'useAppLayout'));
     }
 
     /** Handle booking request; create guest + pending booking. */
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
+            'guest_id' => ['nullable', 'integer', 'exists:guests,id'],
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'email' => ['nullable', 'email', 'max:255'],
@@ -42,37 +51,51 @@ class GuestRequestController extends Controller
             'special_requests' => ['nullable', 'string'],
         ]);
 
-        if (empty($data['email']) && empty($data['phone'])) {
-            return back()
-                ->withErrors(['email' => 'Please provide at least an email or a phone number.'])
-                ->withInput();
+        // Use linked guest when logged-in guest submits with their own guest_id.
+        $guest = null;
+        if (!empty($data['guest_id']) && auth()->check() && auth()->user()->guest && (int) auth()->user()->guest->id === (int) $data['guest_id']) {
+            $guest = Guest::find($data['guest_id']);
         }
-
-        // Find existing guest by email/phone or create new (no user account yet).
-        $guestQuery = Guest::query();
-        if (!empty($data['email'])) {
-            $guestQuery->where('email', $data['email']);
-        }
-        if (!empty($data['phone'])) {
-            $guestQuery->orWhere('phone', $data['phone']);
-        }
-        $guest = $guestQuery->first();
 
         if (!$guest) {
-            $guest = $this->guestService->create([
-                'first_name' => $data['first_name'],
-                'last_name' => $data['last_name'],
-                'email' => $data['email'] ?? null,
-                'phone' => $data['phone'] ?? null,
-                'nationality' => null,
-                'id_type' => null,
-                'id_number' => null,
-                'date_of_birth' => null,
-                'address' => null,
-                'city' => null,
-                'country' => null,
-                'notes' => null,
-            ]);
+            if (empty($data['email']) && empty($data['phone'])) {
+                return back()
+                    ->withErrors(['email' => 'Please provide at least an email or a phone number.'])
+                    ->withInput();
+            }
+            // Find existing guest by email/phone or create new (no user account yet).
+            $guestQuery = Guest::query();
+            if (!empty($data['email'])) {
+                $guestQuery->where('email', $data['email']);
+            }
+            if (!empty($data['phone'])) {
+                $guestQuery->orWhere('phone', $data['phone']);
+            }
+            $guest = $guestQuery->first();
+
+            if (!$guest) {
+                // Ensure email/phone are not already used (same email or phone cannot be used for another guest).
+                if (!empty($data['email']) && Guest::where('email', $data['email'])->exists()) {
+                    return back()->withErrors(['email' => __('This email is already registered. Use the same details or contact the hotel.')])->withInput();
+                }
+                if (!empty($data['phone']) && Guest::where('phone', $data['phone'])->exists()) {
+                    return back()->withErrors(['phone' => __('This phone number is already registered. Use the same details or contact the hotel.')])->withInput();
+                }
+                $guest = $this->guestService->create([
+                    'first_name' => $data['first_name'],
+                    'last_name' => $data['last_name'],
+                    'email' => $data['email'] ?? null,
+                    'phone' => $data['phone'] ?? null,
+                    'nationality' => null,
+                    'id_type' => null,
+                    'id_number' => null,
+                    'date_of_birth' => null,
+                    'address' => null,
+                    'city' => null,
+                    'country' => null,
+                    'notes' => null,
+                ]);
+            }
         }
 
         $bookingData = [
@@ -88,11 +111,27 @@ class GuestRequestController extends Controller
         ];
 
         try {
-            $this->bookingService->createPendingRequest($bookingData, null);
+            $booking = $this->bookingService->createPendingRequest($bookingData, null);
         } catch (ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
         }
 
+        // Notify users who can manage guest requests (Admin, Manager, Receptionist)
+        $booking->load('guest');
+        $users = User::permission('guest.manage')->get();
+        foreach ($users as $user) {
+            try {
+                $user->notify(new BookingRequestReceivedNotification($booking));
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        $fromGuestPortal = auth()->check() && auth()->user()->hasRole('Guest');
+        if ($fromGuestPortal) {
+            return redirect()->route('guest.bookings')
+                ->with('success', __('Thank you. Your booking request has been received and will be reviewed by our team.'));
+        }
         return redirect()->route('booking.request')
             ->with('success', __('Thank you. Your booking request has been received and will be reviewed by our team.'));
     }
