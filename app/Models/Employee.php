@@ -37,9 +37,15 @@ class Employee extends Model
         return $this->display_name;
     }
 
-    /** Photo URL for display; returns default avatar path when photo is null. */
+    /**
+     * Photo URL for display. Single source of truth: user profile image.
+     * Fallback: deprecated employees.photo when user has no profile_pic (backward compatibility).
+     */
     public function getPhotoUrlAttribute(): string
     {
+        if ($this->user && ! empty($this->user->profile_pic)) {
+            return asset('storage/' . $this->user->profile_pic);
+        }
         if (! empty($this->photo)) {
             return asset('storage/' . $this->photo);
         }

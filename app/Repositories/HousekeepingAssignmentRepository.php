@@ -14,7 +14,7 @@ class HousekeepingAssignmentRepository
     {
         $q = $this->model->newQuery()->with(['room.roomType', 'assignedTo'])
             ->where('date', $date->toDateString())
-            ->orderBy('room_id');
+            ->orderByDesc('id');
         if ($assignedTo !== null) {
             $q->where('assigned_to', $assignedTo);
         }

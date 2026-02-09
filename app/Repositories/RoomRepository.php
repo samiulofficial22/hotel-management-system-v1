@@ -43,7 +43,7 @@ class RoomRepository
 
     public function paginate(int $perPage = 15, ?int $roomTypeId = null): LengthAwarePaginator
     {
-        $q = $this->model->newQuery()->with('roomType')->orderBy('number');
+        $q = $this->model->newQuery()->with('roomType')->orderByDesc('id');
         if ($roomTypeId !== null) {
             $q->where('room_type_id', $roomTypeId);
         }
@@ -55,7 +55,7 @@ class RoomRepository
      */
     public function paginateWithFilters(int $perPage = 15, ?string $search = null, ?int $roomTypeId = null, ?string $status = null): LengthAwarePaginator
     {
-        $q = $this->model->newQuery()->with('roomType')->orderBy('number');
+        $q = $this->model->newQuery()->with('roomType')->orderByDesc('id');
         if ($search !== null && $search !== '') {
             $term = '%' . trim($search) . '%';
             $q->where(function ($query) use ($term) {

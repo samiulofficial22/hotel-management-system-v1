@@ -21,7 +21,8 @@ class AttendanceController extends Controller
         $date = $request->has('date') ? Carbon::parse($request->date) : today();
         $attendances = $this->service->forDate($date);
         $employees = $this->employeeService->all(true);
-        return view('hr.attendance.index', compact('attendances', 'employees', 'date'));
+        $attendancesByEmployee = $attendances->keyBy('employee_id');
+        return view('hr.attendance.index', compact('attendances', 'employees', 'date', 'attendancesByEmployee'));
     }
 
     public function mark(Request $request): RedirectResponse
@@ -29,17 +30,19 @@ class AttendanceController extends Controller
         $request->validate([
             'employee_id' => 'required|exists:employees,id',
             'date' => 'required|date',
-            'check_in' => 'nullable',
-            'check_out' => 'nullable',
+            'check_in' => 'nullable|string|max:10',
+            'check_out' => 'nullable|string|max:10',
             'status' => 'nullable|in:present,absent,half_day,leave',
+            'notes' => 'nullable|string|max:500',
         ]);
         $this->service->markAttendance(
             (int) $request->employee_id,
             Carbon::parse($request->date),
-            $request->check_in,
-            $request->check_out,
-            $request->status ?? 'present'
+            $request->check_in ?: null,
+            $request->check_out ?: null,
+            $request->status ?? 'present',
+            $request->notes
         );
-        return redirect()->route('hr.attendance.index', ['date' => $request->date])->with('success', 'Attendance updated.');
+        return redirect()->route('hr.attendance.index', ['date' => $request->date])->with('success', __('Attendance updated.'));
     }
 }

@@ -3,7 +3,12 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3 mb-0">POS – Select Outlet</h1>
-    <a href="{{ route('pos.orders-list') }}" class="btn btn-outline-primary">Orders & Report</a>
+    <div>
+        @can('pos.view_reports')
+        <a href="{{ route('pos.reports') }}" class="btn btn-outline-primary me-2">POS Reports</a>
+        @endcan
+        <a href="{{ route('pos.orders-list') }}" class="btn btn-outline-primary">Orders & Report</a>
+    </div>
 </div>
 @if($outlets->isEmpty())
     <div class="alert alert-info">No outlets yet. <a href="{{ route('outlets.create') }}">Create an outlet</a> first, then add menu categories and items.</div>

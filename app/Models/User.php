@@ -12,6 +12,8 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
+use App\Models\Employee;
+
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -84,5 +86,11 @@ class User extends Authenticatable
     public function guest(): HasOne
     {
         return $this->hasOne(Guest::class);
+    }
+
+    /** Employee record linked to this user (office staff). Single source of profile image. */
+    public function employee(): HasOne
+    {
+        return $this->hasOne(Employee::class);
     }
 }

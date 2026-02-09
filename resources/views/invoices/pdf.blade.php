@@ -39,23 +39,23 @@
             <tr>
                 <td>{{ $item->description }}</td>
                 <td class="text-right">{{ $item->quantity }}</td>
-                <td class="text-right">{{ number_format($item->unit_price, 2) }}</td>
-                <td class="text-right">{{ number_format($item->amount, 2) }}</td>
+                <td class="text-right">{{ money($item->unit_price) }}</td>
+                <td class="text-right">{{ money($item->amount) }}</td>
             </tr>
             @endforeach
         </tbody>
     </table>
     <table class="totals">
-        <tr><td>Subtotal</td><td>{{ number_format($invoice->subtotal, 2) }}</td></tr>
+        <tr><td>Subtotal</td><td>{{ money($invoice->subtotal) }}</td></tr>
         @if((float) $invoice->discount_amount > 0)
-        <tr><td>Discount</td><td>- {{ number_format($invoice->discount_amount, 2) }}</td></tr>
+        <tr><td>Discount</td><td>- {{ money($invoice->discount_amount) }}</td></tr>
         @endif
         @if((float) $invoice->tax_amount > 0)
-        <tr><td>Tax</td><td>{{ number_format($invoice->tax_amount, 2) }}</td></tr>
+        <tr><td>Tax</td><td>{{ money($invoice->tax_amount) }}</td></tr>
         @endif
-        <tr><td><strong>Total</strong></td><td><strong>{{ number_format($invoice->total_amount, 2) }}</strong></td></tr>
-        <tr><td>Paid</td><td>{{ number_format($invoice->paid_amount, 2) }}</td></tr>
-        <tr><td><strong>Balance Due</strong></td><td><strong>{{ number_format($invoice->balance_due, 2) }}</strong></td></tr>
+        <tr><td><strong>Total</strong></td><td><strong>{{ money($invoice->total_amount) }}</strong></td></tr>
+        <tr><td>Paid</td><td>{{ money($invoice->paid_amount) }}</td></tr>
+        <tr><td><strong>Balance Due</strong></td><td><strong>{{ money($invoice->balance_due) }}</strong></td></tr>
     </table>
     <p><strong>Status:</strong> {{ $invoice->status }}</p>
     @if($invoice->notes)

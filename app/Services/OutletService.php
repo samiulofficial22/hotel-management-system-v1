@@ -44,4 +44,19 @@ class OutletService
     {
         return $this->repository->update($outlet, $data);
     }
+
+    /** @throws ValidationException */
+    public function delete(Outlet $outlet): void
+    {
+        if ($outlet->posOrders()->exists()) {
+            throw ValidationException::withMessages(['outlet' => __('Cannot delete outlet: it has POS orders.')]);
+        }
+        if ($outlet->posTables()->exists()) {
+            throw ValidationException::withMessages(['outlet' => __('Cannot delete outlet: it has tables.')]);
+        }
+        if ($outlet->menuCategories()->exists()) {
+            throw ValidationException::withMessages(['outlet' => __('Cannot delete outlet: it has menu categories. Remove or reassign them first.')]);
+        }
+        $outlet->delete();
+    }
 }

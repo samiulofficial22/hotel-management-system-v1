@@ -3,9 +3,13 @@
 namespace App\Services;
 
 use App\Models\Employee;
+use App\Models\User;
 use App\Repositories\EmployeeRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
 
 class EmployeeService
 {
@@ -51,7 +55,6 @@ class EmployeeService
             'salary' => ['nullable', 'numeric', 'min:0'],
             'shift' => ['nullable', 'string', 'max:50'],
             'status' => ['nullable', 'string', 'max:30'],
-            'photo' => ['nullable', 'image', 'mimes:jpeg,jpg,png', 'max:2048'],
             'nid_number' => ['nullable', 'string', 'max:50'],
             'nid_photo' => ['nullable', 'image', 'mimes:jpeg,jpg,png', 'max:2048'],
         ];
@@ -94,9 +97,6 @@ class EmployeeService
             'is_active' => $isActive,
             'base_salary' => isset($data['salary']) && $data['salary'] !== '' ? (float) $data['salary'] : ($employee->base_salary ?? 0),
         ];
-        if (array_key_exists('photo', $data) && $data['photo'] !== null) {
-            $out['photo'] = $data['photo'];
-        }
         $out['nid_number'] = isset($data['nid_number']) && trim((string) $data['nid_number']) !== '' ? trim($data['nid_number']) : null;
         if (array_key_exists('nid_photo', $data) && $data['nid_photo'] !== null) {
             $out['nid_photo'] = $data['nid_photo'];
@@ -132,5 +132,94 @@ class EmployeeService
     public function update(Employee $employee, array $data): Employee
     {
         return $this->repository->update($employee, $data);
+    }
+
+    public function delete(Employee $employee): void
+    {
+        if ($employee->photo) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($employee->photo);
+        }
+        if ($employee->nid_photo) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($employee->nid_photo);
+        }
+        $employee->delete();
+    }
+
+    /**
+     * Sync employees to users table (office staff).
+     * - Employees without user_id: create User (name, email, random password), assign role = designation, link employee.user_id.
+     * - Employees with user_id: sync user's role to match designation.
+     * Returns ['created' => int, 'updated' => int, 'skipped' => int, 'errors' => array].
+     */
+    public function syncEmployeesToUsers(): array
+    {
+        $guard = config('auth.defaults.guard');
+        $employees = $this->repository->all(false);
+        $created = 0;
+        $updated = 0;
+        $skipped = 0;
+        $errors = [];
+
+        foreach ($employees as $employee) {
+            $name = $employee->display_name;
+            if (trim($name ?? '') === '') {
+                $skipped++;
+                $errors[] = __('Employee :code has no name.', ['code' => $employee->employee_code ?? $employee->id]);
+                continue;
+            }
+
+            if ($employee->user_id) {
+                $user = $employee->user;
+                if (! $user) {
+                    $employee->update(['user_id' => null]);
+                    $updated++;
+                    continue;
+                }
+                if ($employee->designation && Role::where('guard_name', $guard)->where('name', $employee->designation)->exists()) {
+                    $user->syncRoles([$employee->designation]);
+                }
+                $updated++;
+                continue;
+            }
+
+            $email = trim($employee->email ?? '');
+            if ($email === '') {
+                $base = Str::slug($employee->employee_code ?? 'emp' . $employee->id);
+                $email = strtolower($base) . '@staff.sync';
+                $counter = 0;
+                while (User::where('email', $email)->exists()) {
+                    $counter++;
+                    $email = strtolower($base) . $counter . '@staff.sync';
+                }
+            } else {
+                $existingUser = User::where('email', $email)->first();
+                if ($existingUser) {
+                    $employee->update(['user_id' => $existingUser->id]);
+                    if ($employee->designation && Role::where('guard_name', $guard)->where('name', $employee->designation)->exists()) {
+                        $existingUser->syncRoles([$employee->designation]);
+                    }
+                    $updated++;
+                    continue;
+                }
+            }
+
+            try {
+                $user = User::create([
+                    'name' => $name,
+                    'email' => $email,
+                    'password' => Hash::make(Str::random(16)),
+                ]);
+                if ($employee->designation && Role::where('guard_name', $guard)->where('name', $employee->designation)->exists()) {
+                    $user->assignRole($employee->designation);
+                }
+                $employee->update(['user_id' => $user->id]);
+                $created++;
+            } catch (\Throwable $e) {
+                $skipped++;
+                $errors[] = __('Employee :name: :message', ['name' => $name, 'message' => $e->getMessage()]);
+            }
+        }
+
+        return ['created' => $created, 'updated' => $updated, 'skipped' => $skipped, 'errors' => $errors];
     }
 }

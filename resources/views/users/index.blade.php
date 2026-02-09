@@ -31,7 +31,7 @@
         </tbody>
     </table>
 </div>
-<div id="staff-pagination">{{ $officeStaff->links() }}</div>
+<div id="staff-pagination"></div>
 
 {{-- Guests (portal users) table --}}
 <h2 class="h5 mb-3 mt-4">{{ __('Guests') }} ({{ __('Portal users') }})</h2>

@@ -26,6 +26,7 @@ use App\Http\Controllers\MarketingCampaignController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\GuestRequestController;
@@ -65,6 +66,7 @@ Route::middleware(['auth'])->group(function (): void {
 
     // Notifications (e.g. room assigned for housekeepers)
     Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'readAndRedirect'])->name('notifications.read');
 
     // Guest panel (guest role only; portal access required – no access redirects to login)
     Route::prefix('guest')->name('guest.')->middleware('guest.portal')->group(function (): void {
@@ -75,17 +77,22 @@ Route::middleware(['auth'])->group(function (): void {
         Route::get('/bookings', [\App\Http\Controllers\GuestPortalController::class, 'bookings'])->name('bookings');
     });
 
-    // Guest booking requests (admin / guest.manage)
+    // Guest booking requests: list = guest.manage, approve/reject = guest.approve
     Route::middleware('permission:guest.manage')->group(function (): void {
         Route::get('/guest-requests', [GuestApprovalController::class, 'index'])->name('guest.requests.index');
-        Route::post('/guest-requests/{booking}/approve', [GuestApprovalController::class, 'approve'])->name('guest.requests.approve');
-        Route::post('/guest-requests/{booking}/reject', [GuestApprovalController::class, 'reject'])->name('guest.requests.reject');
+        Route::post('/guest-requests/{booking}/approve', [GuestApprovalController::class, 'approve'])->name('guest.requests.approve')->middleware('permission:guest.approve');
+        Route::post('/guest-requests/{booking}/reject', [GuestApprovalController::class, 'reject'])->name('guest.requests.reject')->middleware('permission:guest.approve');
     });
 
     // Users (admin / users.manage)
     Route::resource('users', UserController::class)
         ->except(['show'])
         ->middleware('permission:users.manage');
+
+    // Roles (admin / roles.manage)
+    Route::resource('roles', RoleController::class)
+        ->except(['show'])
+        ->middleware('permission:roles.manage');
 
     // Room types & rooms
     Route::resource('room-types', RoomTypeController::class)->except(['show'])->middleware('permission:room_types.manage');
@@ -103,8 +110,9 @@ Route::middleware(['auth'])->group(function (): void {
     Route::post('/bookings/{booking}/check-in', [BookingController::class, 'checkIn'])->name('bookings.check-in')->middleware('permission:bookings.checkin_checkout');
     Route::post('/bookings/{booking}/check-out', [BookingController::class, 'checkOut'])->name('bookings.check-out')->middleware('permission:bookings.checkin_checkout');
 
-    // Invoice PDF download (Phase 6)
+    // Invoice PDF download & view (Phase 6)
     Route::get('/invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf')->middleware('permission:invoices.manage');
+    Route::get('/invoices/{invoice}/pdf/view', [InvoiceController::class, 'pdfView'])->name('invoices.pdf.view')->middleware('permission:invoices.manage');
 
     // Phase 2: F&B / POS
     Route::middleware('permission:pos.manage')->group(function (): void {
@@ -113,16 +121,23 @@ Route::middleware(['auth'])->group(function (): void {
         Route::post('/outlets', [OutletController::class, 'store'])->name('outlets.store');
         Route::get('/outlets/{outlet}/edit', [OutletController::class, 'edit'])->name('outlets.edit');
         Route::put('/outlets/{outlet}', [OutletController::class, 'update'])->name('outlets.update');
+        Route::delete('/outlets/{outlet}', [OutletController::class, 'destroy'])->name('outlets.destroy');
 
         Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
         Route::get('/pos/orders', [PosController::class, 'ordersList'])->name('pos.orders-list');
+        Route::get('/pos/reports', [PosController::class, 'reports'])->name('pos.reports')->middleware('permission:pos.view_reports');
         Route::get('/pos/outlet/{id}', [PosController::class, 'outlet'])->name('pos.outlet');
+        Route::post('/pos/outlet/{id}/tables', [PosController::class, 'storeTable'])->name('pos.outlet.tables.store');
+        Route::delete('/pos/tables/{table}', [PosController::class, 'destroyTable'])->name('pos.tables.destroy');
         Route::post('/pos/order', [PosController::class, 'createOrder'])->name('pos.order.create');
         Route::get('/pos/order/{order}', [PosController::class, 'order'])->name('pos.order');
         Route::post('/pos/order/{order}/item', [PosController::class, 'addItem'])->name('pos.order.add-item');
         Route::delete('/pos/order/{order}/item/{item}', [PosController::class, 'removeItem'])->name('pos.order.remove-item');
         Route::post('/pos/order/{order}/send-kitchen', [PosController::class, 'sendToKitchen'])->name('pos.order.send-kitchen');
         Route::post('/pos/order/{order}/complete', [PosController::class, 'completeOrder'])->name('pos.order.complete');
+        Route::post('/pos/order/{order}/pay', [PosController::class, 'payOrder'])->name('pos.order.pay')->middleware('permission:pos.pay');
+        Route::post('/pos/order/{order}/post-to-room', [PosController::class, 'postOrderToRoom'])->name('pos.order.post-to-room')->middleware('permission:pos.pay');
+        Route::post('/pos/order/{order}/void', [PosController::class, 'voidOrder'])->name('pos.order.void')->middleware('permission:pos.void');
 
         Route::prefix('outlets/{outlet}')->name('menu.')->group(function (): void {
             Route::get('menu/categories', [MenuCategoryController::class, 'index'])->name('categories.index');
@@ -130,11 +145,13 @@ Route::middleware(['auth'])->group(function (): void {
             Route::post('menu/categories', [MenuCategoryController::class, 'store'])->name('categories.store');
             Route::get('menu/categories/{category}/edit', [MenuCategoryController::class, 'edit'])->name('categories.edit');
             Route::put('menu/categories/{category}', [MenuCategoryController::class, 'update'])->name('categories.update');
+            Route::delete('menu/categories/{category}', [MenuCategoryController::class, 'destroy'])->name('categories.destroy');
             Route::get('menu/items', [MenuItemController::class, 'index'])->name('items.index');
             Route::get('menu/items/create', [MenuItemController::class, 'create'])->name('items.create');
             Route::post('menu/items', [MenuItemController::class, 'store'])->name('items.store');
             Route::get('menu/items/{item}/edit', [MenuItemController::class, 'edit'])->name('items.edit');
             Route::put('menu/items/{item}', [MenuItemController::class, 'update'])->name('items.update');
+            Route::delete('menu/items/{item}', [MenuItemController::class, 'destroy'])->name('items.destroy');
         });
     });
 
@@ -151,6 +168,7 @@ Route::middleware(['auth'])->group(function (): void {
             Route::post('venues', [BanquetVenueController::class, 'store'])->name('venues.store');
             Route::get('venues/{venue}/edit', [BanquetVenueController::class, 'edit'])->name('venues.edit');
             Route::put('venues/{venue}', [BanquetVenueController::class, 'update'])->name('venues.update');
+            Route::delete('venues/{venue}', [BanquetVenueController::class, 'destroy'])->name('venues.destroy');
             Route::resource('bookings', BanquetBookingController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update']);
         });
     });
@@ -186,6 +204,9 @@ Route::middleware(['auth'])->group(function (): void {
         Route::get('/maintenance/create', [MaintenanceRequestController::class, 'create'])->name('maintenance.create')->middleware('permission:maintenance.manage');
         Route::post('/maintenance', [MaintenanceRequestController::class, 'store'])->name('maintenance.store')->middleware('permission:maintenance.manage');
         Route::get('/maintenance/{maintenance_request}', [MaintenanceRequestController::class, 'show'])->name('maintenance.show');
+        Route::post('/maintenance/{maintenance_request}/start', [MaintenanceRequestController::class, 'start'])->name('maintenance.start');
+        Route::post('/maintenance/{maintenance_request}/complete', [MaintenanceRequestController::class, 'complete'])->name('maintenance.complete');
+        Route::patch('/maintenance/{maintenance_request}/notes', [MaintenanceRequestController::class, 'updateNotes'])->name('maintenance.notes.update');
         Route::get('/maintenance/{maintenance_request}/edit', [MaintenanceRequestController::class, 'edit'])->name('maintenance.edit')->middleware('permission:maintenance.manage');
         Route::put('/maintenance/{maintenance_request}', [MaintenanceRequestController::class, 'update'])->name('maintenance.update')->middleware('permission:maintenance.manage');
     });
@@ -194,6 +215,11 @@ Route::middleware(['auth'])->group(function (): void {
     Route::middleware('permission:accounts.view')->group(function (): void {
         Route::get('/accounts', [AccountsController::class, 'index'])->name('accounts.index');
         Route::get('/accounts/ledger', [AccountsController::class, 'ledger'])->name('accounts.ledger');
+        Route::get('/accounts/reports', [AccountsController::class, 'reportsIndex'])->name('accounts.reports.index');
+        Route::get('/accounts/reports/profit-loss', [AccountsController::class, 'reportProfitLoss'])->name('accounts.reports.profit-loss');
+        Route::get('/accounts/reports/expense', [AccountsController::class, 'reportExpense'])->name('accounts.reports.expense');
+        Route::get('/accounts/reports/daily-cash', [AccountsController::class, 'reportDailyCash'])->name('accounts.reports.daily-cash');
+        Route::get('/accounts/reports/payroll-cost', [AccountsController::class, 'reportPayrollCost'])->name('accounts.reports.payroll-cost');
         Route::post('/accounts/entry', [AccountsController::class, 'storeEntry'])->name('accounts.entry.store')->middleware('permission:accounts.manage');
         Route::get('/accounts/create', [AccountsController::class, 'create'])->name('accounts.create')->middleware('permission:accounts.manage');
         Route::post('/accounts', [AccountsController::class, 'store'])->name('accounts.store')->middleware('permission:accounts.manage');
@@ -202,14 +228,17 @@ Route::middleware(['auth'])->group(function (): void {
     });
     Route::middleware('permission:hr.view')->group(function (): void {
         Route::prefix('hr')->name('hr.')->group(function (): void {
+            Route::post('employees/sync', [EmployeeController::class, 'syncToUsers'])->name('employees.sync')->middleware('permission:hr.manage');
             Route::resource('employees', EmployeeController::class)->middleware('permission:hr.manage');
             Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
             Route::post('attendance/mark', [AttendanceController::class, 'mark'])->name('attendance.mark')->middleware('permission:hr.manage');
             Route::get('payroll', [PayrollController::class, 'index'])->name('payroll.index')->middleware('permission:payroll.view');
-            Route::get('payroll/create', [PayrollController::class, 'create'])->name('payroll.create')->middleware('permission:payroll.manage');
-            Route::post('payroll', [PayrollController::class, 'store'])->name('payroll.store')->middleware('permission:payroll.manage');
+            Route::get('payroll/create', [PayrollController::class, 'create'])->name('payroll.create')->middleware('permission:payroll.generate');
+            Route::post('payroll', [PayrollController::class, 'store'])->name('payroll.store')->middleware('permission:payroll.generate');
             Route::get('payroll/{payroll_run}', [PayrollController::class, 'show'])->name('payroll.show')->middleware('permission:payroll.view');
-            Route::post('payroll/{payroll_run}/process', [PayrollController::class, 'process'])->name('payroll.process')->middleware('permission:payroll.manage');
+            Route::post('payroll/{payroll_run}/process', [PayrollController::class, 'process'])->name('payroll.process')->middleware('permission:payroll.approve');
+            Route::post('payroll/{payroll_run}/pay', [PayrollController::class, 'pay'])->name('payroll.pay')->middleware('permission:payroll.pay');
+            Route::get('payroll/item/{payroll_item}/slip', [PayrollController::class, 'salarySlipPdf'])->name('payroll.slip')->middleware('permission:payroll.view');
             Route::put('payroll/item/{payroll_item}', [PayrollController::class, 'updateItem'])->name('payroll.item.update')->middleware('permission:payroll.manage');
         });
     });

@@ -46,7 +46,15 @@
 <td>{{ $g->full_name }}</td>
 <td>{{ $g->email ?? '-' }}</td>
 <td>{{ $g->phone ?? '-' }}</td>
-<td><a href="{{ route('guests.show', $g) }}" class="btn btn-sm btn-outline-primary">View</a> <a href="{{ route('guests.edit', $g) }}" class="btn btn-sm btn-outline-secondary">Edit</a></td>
+<td class="text-nowrap">
+    <a href="{{ route('guests.show', $g) }}" class="btn btn-sm btn-outline-primary">{{ __('messages.View') }}</a>
+    <a href="{{ route('guests.edit', $g) }}" class="btn btn-sm btn-outline-secondary">{{ __('messages.Edit') }}</a>
+    <form action="{{ route('guests.destroy', $g) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('messages.Delete this guest? This cannot be undone.') }}');">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="btn btn-sm btn-outline-danger">{{ __('messages.Delete') }}</button>
+    </form>
+</td>
 </tr>
 @endforeach
 </tbody>

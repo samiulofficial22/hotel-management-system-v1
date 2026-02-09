@@ -49,10 +49,11 @@
 
 <div class="table-responsive">
     <table class="table table-striped">
-        <thead><tr><th>Number</th><th>Type</th><th>Floor</th><th>Status</th><th></th></tr></thead>
+        <thead><tr><th>ID</th><th>Number</th><th>Type</th><th>Floor</th><th>Status</th><th></th></tr></thead>
         <tbody>
             @foreach($rooms as $r)
             <tr>
+                <td>{{ ($rooms->currentPage() - 1) * $rooms->perPage() + $loop->iteration }}</td>
                 <td>{{ $r->number }}</td>
                 <td>{{ $r->roomType->name ?? '-' }}</td>
                 <td>{{ $r->floor ?? '-' }}</td>

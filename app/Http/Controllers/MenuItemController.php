@@ -9,6 +9,7 @@ use App\Services\MenuItemService;
 use App\Services\MenuCategoryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Illuminate\Validation\ValidationException;
 
@@ -35,6 +36,9 @@ class MenuItemController extends Controller
     public function store(Request $request, Outlet $outlet): RedirectResponse
     {
         $validated = $request->validate($this->service->rules());
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('menu-items', 'public');
+        }
         try {
             $this->service->create($validated);
             return redirect()->route('menu.items.index', $outlet)->with('success', __('Menu item created.'));
@@ -52,11 +56,23 @@ class MenuItemController extends Controller
     public function update(Request $request, Outlet $outlet, MenuItem $item): RedirectResponse
     {
         $validated = $request->validate($this->service->rules(true));
+        if ($request->hasFile('image')) {
+            if ($item->image) {
+                Storage::disk('public')->delete($item->image);
+            }
+            $validated['image'] = $request->file('image')->store('menu-items', 'public');
+        }
         try {
             $this->service->update($item, $validated);
             return redirect()->route('menu.items.index', $outlet)->with('success', __('Menu item updated.'));
         } catch (ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
         }
+    }
+
+    public function destroy(Outlet $outlet, MenuItem $item): RedirectResponse
+    {
+        $this->service->delete($item);
+        return redirect()->route('menu.items.index', $outlet)->with('success', __('Menu item deleted.'));
     }
 }

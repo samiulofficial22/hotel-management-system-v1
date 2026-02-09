@@ -9,10 +9,13 @@ class MaintenanceRequest extends Model
 {
     protected $fillable = [
         'room_id', 'department_id', 'title', 'description', 'status', 'priority',
-        'reported_by', 'assigned_to', 'resolved_at', 'resolved_by', 'resolution_notes',
+        'reported_by', 'assigned_to', 'started_at', 'resolved_at', 'resolved_by', 'resolution_notes',
     ];
 
-    protected $casts = ['resolved_at' => 'datetime'];
+    protected $casts = [
+        'started_at' => 'datetime',
+        'resolved_at' => 'datetime',
+    ];
 
     public const STATUS_OPEN = 'open';
     public const STATUS_IN_PROGRESS = 'in_progress';

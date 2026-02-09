@@ -29,7 +29,7 @@
     </div>
 </div>
 
-@if(auth()->user()->can('housekeeping.manage') && !auth()->user()->hasRole('Housekeeping'))
+@can('housekeeping.assign_others')
 {{-- Admin/Manager only: Assign room to any housekeeper. Housekeepers cannot assign others. --}}
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-light py-2">
@@ -98,32 +98,34 @@
     @if($assignments->isEmpty())
     <div class="card-body text-center text-muted py-5">
         <p class="mb-0">{{ __('No assignments for this date.') }}</p>
-        @if(auth()->user()->can('housekeeping.manage') && !auth()->user()->hasRole('Housekeeping'))
+        @can('housekeeping.assign_others')
         <p class="small mb-0 mt-1">{{ __('Use the form above to assign a room to a staff member.') }}</p>
         @else
         <p class="small mb-0 mt-1">{{ __('Use the form above to assign a room to yourself.') }}</p>
-        @endif
+        @endcan
     </div>
     @else
     <div class="table-responsive">
         <table class="table table-hover mb-0 align-middle">
             <thead class="table-light">
                 <tr>
+                    <th>ID</th>
                     <th>Room</th>
                     <th>Type</th>
                     <th>Assigned to</th>
                     <th>Status</th>
                     <th>Assigned at</th>
                     <th>Completed at</th>
-                    @if(auth()->user()->can('housekeeping.manage') && !auth()->user()->hasRole('Housekeeping'))
+                    @can('housekeeping.assign_others')
                     <th>Completion notes</th>
-                    @endif
+                    @endcan
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($assignments as $a)
                 <tr>
+                    <td>{{ $loop->iteration }}</td>
                     <td>
                         <span class="fw-medium">{{ $a->room->number ?? '-' }}</span>
                     </td>
@@ -133,13 +135,13 @@
                         @php $cfg = \App\Models\HousekeepingAssignment::statusBadgeConfig($a->status); @endphp
                         <span class="badge {{ $cfg['class'] }}">{{ $cfg['label'] }}</span>
                     </td>
-                    <td class="small text-nowrap">{{ $a->created_at?->format('d M Y, H:i') ?? '-' }}</td>
-                    <td class="small text-nowrap">{{ $a->completed_at?->format('d M Y, H:i') ?? '-' }}</td>
-                    @if(auth()->user()->can('housekeeping.manage') && !auth()->user()->hasRole('Housekeeping'))
+                    <td class="small text-nowrap">{{ $a->created_at?->format('d M Y, h:i A') ?? '-' }}</td>
+                    <td class="small text-nowrap">{{ $a->completed_at?->format('d M Y, h:i A') ?? '-' }}</td>
+                    @can('housekeeping.assign_others')
                     <td class="small">{{ $a->status === 'completed' && $a->notes ? $a->notes : '-' }}</td>
-                    @endif
+                    @endcan
                     <td class="text-end">
-                        @if(auth()->user()->can('housekeeping.manage') && !auth()->user()->hasRole('Housekeeping'))
+                        @can('housekeeping.assign_others')
                             <a href="{{ route('housekeeping.edit', $a) }}" class="btn btn-sm btn-outline-primary me-1">{{ __('Edit') }}</a>
                             <form action="{{ route('housekeeping.destroy', $a) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('Are you sure you want to delete this assignment?') }}');">
                                 @csrf
@@ -147,9 +149,9 @@
                                 <button type="submit" class="btn btn-sm btn-outline-danger">{{ __('Delete') }}</button>
                             </form>
                             <span class="me-1"></span>
-                        @endif
+                        @endcan
                         @if($a->status === 'pending')
-                            @if(auth()->user()->can('housekeeping.manage') && !auth()->user()->hasRole('Housekeeping'))
+                            @can('housekeeping.assign_others')
                             <form action="{{ route('housekeeping.reassign', $a) }}" method="POST" class="d-inline-block me-1">
                                 @csrf
                                 <select name="assigned_to" class="form-select form-select-sm d-inline-block w-auto" onchange="this.form.submit()">
@@ -158,7 +160,7 @@
                                     @endforeach
                                 </select>
                             </form>
-                            @endif
+                            @endcan
                             <form action="{{ route('housekeeping.start', $a) }}" method="POST" class="d-inline">
                                 @csrf
                                 <button type="submit" class="btn btn-sm btn-info">Start</button>
@@ -191,7 +193,7 @@
                         @if($a->status === 'completed')
                             <span class="d-block small text-muted mb-1">{{ $a->notes ? \Illuminate\Support\Str::limit($a->notes, 40) : '-' }}</span>
                             @php
-                                $canEditNotes = $a->assigned_to === auth()->id() || (auth()->user()->can('housekeeping.manage') && !auth()->user()->hasRole('Housekeeping'));
+                                $canEditNotes = $a->assigned_to === auth()->id() || auth()->user()->can('housekeeping.assign_others');
                             @endphp
                             @if($canEditNotes)
                             <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editNotesModal{{ $a->id }}">{{ __('Edit') }}</button>

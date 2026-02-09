@@ -25,7 +25,7 @@
         <dt class="col-sm-3">{{ __('Shift') }}</dt>
         <dd class="col-sm-9">{{ $employee->shift ?? '-' }}</dd>
         <dt class="col-sm-3">{{ __('Salary') }}</dt>
-        <dd class="col-sm-9">{{ $employee->salary !== null ? number_format($employee->salary, 2) : ($employee->base_salary !== null ? number_format($employee->base_salary, 2) : '-') }}</dd>
+        <dd class="col-sm-9">{{ $employee->salary !== null ? money($employee->salary) : ($employee->base_salary !== null ? money($employee->base_salary) : '-') }}</dd>
         <dt class="col-sm-3">{{ __('NID number') }}</dt>
         <dd class="col-sm-9">{{ $employee->nid_number ?? '-' }}</dd>
         @if($employee->nid_photo_url)
@@ -42,4 +42,9 @@
 
 <a href="{{ route('hr.employees.edit', $employee) }}" class="btn btn-primary">{{ __('Edit') }}</a>
 <a href="{{ route('hr.employees.index') }}" class="btn btn-secondary">{{ __('Back') }}</a>
+<form action="{{ route('hr.employees.destroy', $employee) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('Delete this employee? Attendance and payroll records for this employee will also be removed.') }}');">
+    @csrf
+    @method('DELETE')
+    <button type="submit" class="btn btn-outline-danger">{{ __('Delete') }}</button>
+</form>
 @endsection

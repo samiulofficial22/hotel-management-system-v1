@@ -2,7 +2,7 @@
 @section('title', 'Edit Menu Item')
 @section('content')
 <h1 class="h3 mb-4">Edit Menu Item: {{ $item->name }}</h1>
-<form method="POST" action="{{ route('menu.items.update', [$outlet, $item]) }}">
+<form method="POST" action="{{ route('menu.items.update', [$outlet, $item]) }}" enctype="multipart/form-data">
 @csrf
 @method('PUT')
 <div class="mb-3">
@@ -29,6 +29,18 @@
 <div class="mb-3">
     <label class="form-label">Description (optional)</label>
     <textarea name="description" class="form-control" rows="2">{{ old('description', $item->description) }}</textarea>
+</div>
+<div class="mb-3">
+    <label class="form-label">Image (optional)</label>
+    @if($item->image)
+        <div class="mb-2">
+            <img src="{{ $item->image_url }}" alt="{{ $item->name }}" class="img-thumbnail" style="max-height: 80px; object-fit: cover;">
+            <small class="d-block text-muted">Current image. Upload new to replace.</small>
+        </div>
+    @endif
+    <input type="file" name="image" class="form-control" accept=".jpg,.jpeg,.png">
+    <small class="text-muted">JPG or PNG, max 2MB. Leave blank to keep current.</small>
+    @error('image')<div class="text-danger small">{{ $message }}</div>@enderror
 </div>
 <div class="mb-3 form-check">
     <input type="checkbox" name="is_available" value="1" class="form-check-input" {{ old('is_available', $item->is_available) ? 'checked' : '' }}>

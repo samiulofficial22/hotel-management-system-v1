@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ChartOfAccount;
 use App\Models\LedgerEntry;
+use App\Models\PayrollRun;
 use App\Services\ChartOfAccountService;
 use App\Services\LedgerEntryService;
 use Carbon\Carbon;
@@ -85,5 +86,50 @@ class AccountsController extends Controller
             $this->ledgerService->create(['entry_date' => $request->entry_date, 'account_id' => $request->account_id, 'debit' => 0, 'credit' => $credit, 'description' => $request->description], auth()->id());
         }
         return redirect()->route('accounts.ledger', ['account_id' => $request->account_id])->with('success', 'Entry added.');
+    }
+
+    public function reportsIndex(): View
+    {
+        return view('accounts.reports-index');
+    }
+
+    public function reportProfitLoss(Request $request): View
+    {
+        $from = $request->filled('from') ? Carbon::parse($request->from) : now()->startOfMonth();
+        $to = $request->filled('to') ? Carbon::parse($request->to) : now()->endOfMonth();
+        $revenue = $this->ledgerService->totalRevenue($from, $to);
+        $expense = $this->ledgerService->totalExpense($from, $to);
+        $profit = $revenue - $expense;
+        return view('accounts.report-profit-loss', compact('from', 'to', 'revenue', 'expense', 'profit'));
+    }
+
+    public function reportExpense(Request $request): View
+    {
+        $from = $request->filled('from') ? Carbon::parse($request->from) : now()->startOfMonth();
+        $to = $request->filled('to') ? Carbon::parse($request->to) : now()->endOfMonth();
+        $breakdown = $this->ledgerService->expenseByAccount($from, $to);
+        $total = array_sum(array_column($breakdown, 'amount'));
+        return view('accounts.report-expense', compact('from', 'to', 'breakdown', 'total'));
+    }
+
+    public function reportDailyCash(Request $request): View
+    {
+        $from = $request->filled('from') ? Carbon::parse($request->from) : now()->startOfMonth();
+        $to = $request->filled('to') ? Carbon::parse($request->to) : now()->endOfMonth();
+        $daily = $this->ledgerService->dailyCashSummary($from, $to);
+        return view('accounts.report-daily-cash', compact('from', 'to', 'daily'));
+    }
+
+    public function reportPayrollCost(Request $request): View
+    {
+        $from = $request->filled('from') ? Carbon::parse($request->from)->startOfDay() : now()->copy()->startOfMonth();
+        $to = $request->filled('to') ? Carbon::parse($request->to)->endOfDay() : now()->copy()->endOfMonth();
+        $runs = PayrollRun::with('items.employee')->where('status', PayrollRun::STATUS_PAID)
+            ->whereNotNull('paid_at')
+            ->whereBetween('paid_at', [$from, $to])
+            ->orderByDesc('paid_at')
+            ->get();
+        $totalCost = $runs->sum(fn ($r) => $r->items->sum('net_salary'));
+        return view('accounts.report-payroll-cost', compact('from', 'to', 'runs', 'totalCost'));
     }
 }

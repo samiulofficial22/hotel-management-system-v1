@@ -33,6 +33,11 @@ class ChartOfAccountService
         return $this->repository->find($id);
     }
 
+    public function findByCode(string $code): ?ChartOfAccount
+    {
+        return ChartOfAccount::where('code', $code)->where('is_active', true)->first();
+    }
+
     public function create(array $data): ChartOfAccount
     {
         $data['is_active'] = $data['is_active'] ?? true;

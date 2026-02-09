@@ -3,7 +3,12 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3 mb-0">POS – Orders & Report</h1>
-    <a href="{{ route('pos.index') }}" class="btn btn-outline-secondary">Back to POS</a>
+    <div>
+        @can('pos.view_reports')
+        <a href="{{ route('pos.reports') }}" class="btn btn-outline-primary me-2">POS Reports</a>
+        @endcan
+        <a href="{{ route('pos.index') }}" class="btn btn-outline-secondary">Back to POS</a>
+    </div>
 </div>
 
 <div class="alert alert-info py-2 mb-3 small">
@@ -50,7 +55,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body">
                 <h6 class="text-muted small text-uppercase">Revenue (Sales)</h6>
-                <h3 class="mb-0">{{ number_format($revenue, 2) }}</h3>
+                <h3 class="mb-0">{{ money($revenue) }}</h3>
             </div>
         </div>
     </div>
@@ -58,7 +63,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body">
                 <h6 class="text-muted small text-uppercase">Total Cost</h6>
-                <h3 class="mb-0">{{ number_format($cost, 2) }}</h3>
+                <h3 class="mb-0">{{ money($cost) }}</h3>
             </div>
         </div>
     </div>
@@ -66,7 +71,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body">
                 <h6 class="text-muted small text-uppercase">Profit / Loss</h6>
-                <h3 class="mb-0 {{ $profit >= 0 ? 'text-success' : 'text-danger' }}">{{ number_format($profit, 2) }}</h3>
+                <h3 class="mb-0 {{ $profit >= 0 ? 'text-success' : 'text-danger' }}">{{ money($profit) }}</h3>
             </div>
         </div>
     </div>
@@ -76,18 +81,26 @@
     <div class="card-header bg-white"><strong>Completed Orders List</strong></div>
     <div class="table-responsive">
         <table class="table table-striped mb-0">
-            <thead><tr><th>Order #</th><th>Outlet</th><th>Completed At</th><th>Total</th><th></th></tr></thead>
+            <thead><tr><th>Order #</th><th>Outlet</th><th>Type</th><th>Started at</th><th>Completed at</th><th>Bill (৳)</th><th>Payment</th><th></th></tr></thead>
             <tbody>
                 @forelse($orders as $ord)
                 <tr>
                     <td>{{ $ord->order_number }}</td>
                     <td>{{ $ord->outlet->name ?? '-' }}</td>
-                    <td>{{ $ord->completed_at?->format('Y-m-d H:i') ?? '-' }}</td>
-                    <td>{{ number_format($ord->total, 2) }}</td>
+                    <td>{{ str_replace('_', ' ', ucfirst($ord->pos_type ?? 'restaurant')) }}</td>
+                    <td>{{ $ord->created_at->format('Y-m-d h:i A') }}</td>
+                    <td>{{ $ord->completed_at?->format('Y-m-d h:i A') ?? '-' }}</td>
+                    <td>{{ money($ord->total) }}</td>
+                    <td>
+                        @if($ord->payment_status === 'paid')<span class="badge bg-success">Paid</span>
+                        @elseif($ord->payment_status === 'posted_to_room')<span class="badge bg-info">Room</span>
+                        @elseif($ord->payment_status === 'voided')<span class="badge bg-secondary">Voided</span>
+                        @else<span class="badge bg-warning text-dark">Pending</span>@endif
+                    </td>
                     <td><a href="{{ route('pos.order', $ord->id) }}" class="btn btn-sm btn-outline-primary">View</a></td>
                 </tr>
                 @empty
-                <tr><td colspan="5" class="text-muted text-center py-4">No completed orders in this period.</td></tr>
+                <tr><td colspan="8" class="text-muted text-center py-4">No completed orders in this period.</td></tr>
                 @endforelse
             </tbody>
         </table>

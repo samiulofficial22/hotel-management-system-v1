@@ -50,7 +50,7 @@
                             <span class="text-muted">-</span>
                         @endif
                     </td>
-                    <td><small>{{ $b->created_at?->format('M d, Y H:i') ?? '-' }}</small></td>
+                    <td><small>{{ $b->created_at?->format('M d, Y h:i A') ?? '-' }}</small></td>
                     <td><span class="badge {{ $badge['class'] }}">{{ __($badge['label']) }}</span></td>
                     <td class="text-end">
                         @can('guest.manage')

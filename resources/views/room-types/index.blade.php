@@ -7,13 +7,14 @@
 </div>
 <div class="table-responsive">
     <table class="table table-striped">
-        <thead><tr><th>Name</th><th>Slug</th><th>Base Rate</th><th>Max Occupancy</th><th>Active</th><th></th></tr></thead>
+        <thead><tr><th>ID</th><th>Name</th><th>Slug</th><th>Base Rate</th><th>Max Occupancy</th><th>Active</th><th></th></tr></thead>
         <tbody>
             @foreach($roomTypes as $rt)
             <tr>
+                <td>{{ ($roomTypes->currentPage() - 1) * $roomTypes->perPage() + $loop->iteration }}</td>
                 <td>{{ $rt->name }}</td>
                 <td>{{ $rt->slug }}</td>
-                <td>{{ number_format($rt->base_rate, 2) }}</td>
+                <td>{{ money($rt->base_rate) }}</td>
                 <td>{{ $rt->max_occupancy }}</td>
                 <td>{{ $rt->is_active ? 'Yes' : 'No' }}</td>
                 <td>

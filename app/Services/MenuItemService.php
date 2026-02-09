@@ -19,6 +19,7 @@ class MenuItemService
             'price' => ['required', 'numeric', 'min:0'],
             'cost' => ['nullable', 'numeric', 'min:0'],
             'description' => ['nullable', 'string'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,jpg,png', 'max:2048'],
             'is_available' => ['boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ];
@@ -49,5 +50,13 @@ class MenuItemService
     public function update(MenuItem $item, array $data): MenuItem
     {
         return $this->repository->update($item, $data);
+    }
+
+    public function delete(MenuItem $item): void
+    {
+        if ($item->image) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($item->image);
+        }
+        $item->delete();
     }
 }

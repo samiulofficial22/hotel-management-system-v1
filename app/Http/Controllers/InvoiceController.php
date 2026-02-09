@@ -18,4 +18,15 @@ class InvoiceController extends Controller
         $filename = 'invoice-' . $invoice->invoice_number . '.pdf';
         return $pdf->download($filename);
     }
+
+    /**
+     * View invoice PDF in browser (inline).
+     */
+    public function pdfView(Invoice $invoice): Response
+    {
+        $invoice->load(['guest', 'booking.room.roomType', 'items', 'payments']);
+        $pdf = Pdf::loadView('invoices.pdf', compact('invoice'));
+        $filename = 'invoice-' . $invoice->invoice_number . '.pdf';
+        return $pdf->stream($filename);
+    }
 }

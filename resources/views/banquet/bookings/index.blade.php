@@ -40,14 +40,15 @@
 
 <div class="table-responsive">
 <table class="table table-striped">
-<thead><tr><th>Event</th><th>Venue</th><th>Date</th><th>Time</th><th>Guests</th><th>Status</th><th></th></tr></thead>
+<thead><tr><th>ID</th><th>Event</th><th>Venue</th><th>Date</th><th>Time</th><th>Guests</th><th>Status</th><th></th></tr></thead>
 <tbody>
 @foreach($bookings as $b)
 <tr>
+    <td>{{ ($bookings->currentPage() - 1) * $bookings->perPage() + $loop->iteration }}</td>
     <td>{{ $b->event_name }}</td>
     <td>{{ $b->banquetVenue->name ?? '-' }}</td>
     <td>{{ $b->event_date->format('Y-m-d') }}</td>
-    <td>{{ \Carbon\Carbon::parse($b->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($b->end_time)->format('H:i') }}</td>
+    <td>{{ \Carbon\Carbon::parse($b->start_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($b->end_time)->format('h:i A') }}</td>
     <td>{{ $b->guest_count }}</td>
     <td>
         @php $cfg = \App\Models\BanquetBooking::statusBadgeConfig($b->status); @endphp

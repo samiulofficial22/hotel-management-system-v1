@@ -12,7 +12,7 @@
             <span class="text-muted">-</span>
         @endif
     </td>
-    <td>{{ $user->created_at?->format('Y-m-d H:i') }}</td>
+    <td>{{ $user->created_at?->format('Y-m-d h:i A') }}</td>
     <td class="text-end">
         @if($user->guest)
             <a href="{{ route('guests.show', $user->guest) }}" class="btn btn-sm btn-outline-primary me-1">{{ __('View') }}</a>

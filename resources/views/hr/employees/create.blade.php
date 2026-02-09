@@ -22,14 +22,19 @@
             </div>
             <div class="mb-3">
                 <label class="form-label">{{ __('Email') }}</label>
-                <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}">
+                <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" id="emp-email">
+                <small class="text-muted">{{ __('Required if you set a login password below.') }}</small>
                 @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="mb-3">
-                <label class="form-label">{{ __('Photo') }} ({{ __('optional') }})</label>
-                <input type="file" name="photo" class="form-control @error('photo') is-invalid @enderror" accept=".jpg,.jpeg,.png">
-                <small class="text-muted">{{ __('JPG or PNG, max 2MB') }}</small>
-                @error('photo')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <label class="form-label">{{ __('Password') }} ({{ __('optional') }})</label>
+                <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" autocomplete="new-password" minlength="8" placeholder="{{ __('For office staff login') }}">
+                <small class="text-muted">{{ __('Leave blank to create login later via Sync to Office Staff. Min 8 characters.') }}</small>
+                @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{{ __('Confirm password') }}</label>
+                <input type="password" name="password_confirmation" class="form-control" autocomplete="new-password" minlength="8">
             </div>
             <div class="mb-3">
                 <label class="form-label">{{ __('NID number') }} ({{ __('optional') }})</label>
@@ -56,7 +61,12 @@
             </div>
             <div class="mb-3">
                 <label class="form-label">{{ __('Designation') }}</label>
-                <input type="text" name="designation" class="form-control @error('designation') is-invalid @enderror" value="{{ old('designation') }}" maxlength="100">
+                <select name="designation" class="form-select @error('designation') is-invalid @enderror">
+                    <option value="">{{ __('messages.Not assigned') }}</option>
+                    @foreach($roles ?? [] as $role)
+                        <option value="{{ $role->name }}" {{ old('designation') === $role->name ? 'selected' : '' }}>{{ $role->name }}</option>
+                    @endforeach
+                </select>
                 @error('designation')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="mb-3">

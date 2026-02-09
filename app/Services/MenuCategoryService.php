@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\MenuCategory;
 use App\Repositories\MenuCategoryRepository;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Validation\ValidationException;
 
 class MenuCategoryService
 {
@@ -40,5 +41,14 @@ class MenuCategoryService
     public function update(MenuCategory $category, array $data): MenuCategory
     {
         return $this->repository->update($category, $data);
+    }
+
+    /** @throws ValidationException */
+    public function delete(MenuCategory $category): void
+    {
+        if ($category->menuItems()->exists()) {
+            throw ValidationException::withMessages(['category' => __('Cannot delete category: it has menu items. Remove or move them first.')]);
+        }
+        $category->delete();
     }
 }

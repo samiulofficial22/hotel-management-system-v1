@@ -50,4 +50,14 @@ class BanquetVenueController extends Controller
             return back()->withErrors($e->errors())->withInput();
         }
     }
+
+    public function destroy(BanquetVenue $venue): RedirectResponse
+    {
+        try {
+            $this->service->delete($venue);
+            return redirect()->route('banquet.venues.index')->with('success', __('Venue deleted.'));
+        } catch (ValidationException $e) {
+            return redirect()->route('banquet.venues.index')->withErrors($e->errors());
+        }
+    }
 }

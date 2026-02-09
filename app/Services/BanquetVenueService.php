@@ -45,4 +45,15 @@ class BanquetVenueService
     {
         return $this->repository->update($venue, $data);
     }
+
+    /** @throws ValidationException When venue has bookings. */
+    public function delete(BanquetVenue $venue): void
+    {
+        if ($venue->banquetBookings()->exists()) {
+            throw ValidationException::withMessages([
+                'venue' => [__('Cannot delete venue that has bookings.')],
+            ]);
+        }
+        $venue->delete();
+    }
 }

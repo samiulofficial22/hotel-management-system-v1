@@ -20,8 +20,69 @@
             .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1040; }
             .sidebar-backdrop.show { display: block; }
         }
+        .notifications-dropdown { padding: 0 !important; }
+        .notifications-dropdown .dropdown-item { white-space: normal; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%; padding-right: 1rem; padding-left: 1rem; }
+        .notifications-dropdown .dropdown-header { padding-left: 1rem; padding-right: 1rem; }
+        .card.hover-shadow { transition: box-shadow 0.2s ease; }
+        .card.hover-shadow:hover { box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.12) !important; }
+
+        /* Button design – app-wide */
+        .btn {
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-width: 1.5px;
+        }
+        .btn:not(.btn-link):hover { transform: translateY(-1px); }
+        .btn:not(.btn-link):active { transform: translateY(0); }
+        .btn-primary {
+            box-shadow: 0 2px 8px rgba(13, 110, 253, 0.35);
+        }
+        .btn-primary:hover {
+            box-shadow: 0 4px 14px rgba(13, 110, 253, 0.45);
+        }
+        .btn-success {
+            box-shadow: 0 2px 8px rgba(25, 135, 84, 0.35);
+        }
+        .btn-success:hover {
+            box-shadow: 0 4px 14px rgba(25, 135, 84, 0.45);
+        }
+        .btn-warning {
+            color: #000;
+            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.4);
+        }
+        .btn-warning:hover {
+            color: #000;
+            box-shadow: 0 4px 14px rgba(255, 193, 7, 0.5);
+        }
+        .btn-danger {
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.35);
+        }
+        .btn-danger:hover {
+            box-shadow: 0 4px 14px rgba(220, 53, 69, 0.45);
+        }
+        .btn-info {
+            color: #000;
+            box-shadow: 0 2px 8px rgba(13, 202, 240, 0.35);
+        }
+        .btn-info:hover {
+            color: #000;
+            box-shadow: 0 4px 14px rgba(13, 202, 240, 0.45);
+        }
+        .btn-outline-primary:hover,
+        .btn-outline-secondary:hover,
+        .btn-outline-success:hover,
+        .btn-outline-danger:hover,
+        .btn-outline-warning:hover,
+        .btn-outline-info:hover {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+        .btn-sm { border-radius: 0.4rem; padding: 0.35rem 0.7rem; }
+        .btn-lg { border-radius: 0.6rem; padding: 0.6rem 1.25rem; }
+        .btn-link.text-danger:hover { text-decoration: underline; }
     </style>
     @stack('styles')
+    @stack('head')
 </head>
 <body class="d-flex min-vh-100 bg-light">
     <!-- Sidebar -->
@@ -35,7 +96,7 @@
             </button>
         </div>
         <nav class="nav flex-column p-2">
-            @if(auth()->user()->hasRole('Guest'))
+            @role('Guest')
                 <a class="nav-link {{ request()->routeIs('guest.dashboard') ? 'active' : '' }}" href="{{ route('guest.dashboard') }}">
                     <i class="bi bi-speedometer2"></i> {{ __('Dashboard') }}
                 </a>
@@ -48,12 +109,16 @@
                 <a class="nav-link {{ request()->routeIs('guest.profile') || request()->routeIs('guest.profile.update') ? 'active' : '' }}" href="{{ route('guest.profile') }}">
                     <i class="bi bi-person"></i> {{ __('My profile') }}
                 </a>
-            @elseif(auth()->user()->hasRole('Housekeeping'))
+            @else
+            @role('Housekeeping')
                 <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
                     <i class="bi bi-speedometer2"></i> {{ __('messages.Dashboard') }}
                 </a>
                 <a class="nav-link {{ request()->routeIs('housekeeping.*') ? 'active' : '' }}" href="{{ route('housekeeping.index') }}">
                     <i class="bi bi-bucket"></i> {{ __('Room cleaning assignments') }}
+                </a>
+                <a class="nav-link {{ request()->routeIs('maintenance.*') ? 'active' : '' }}" href="{{ route('maintenance.index') }}">
+                    <i class="bi bi-tools"></i> {{ __('messages.Maintenance') }}
                 </a>
                 <a class="nav-link {{ request()->routeIs('profile.edit') ? 'active' : '' }}" href="{{ route('profile.edit') }}">
                     <i class="bi bi-person"></i> {{ __('My profile') }}
@@ -79,6 +144,11 @@
             <a class="nav-link {{ request()->routeIs('bookings.calendar') ? 'active' : '' }}" href="{{ route('bookings.calendar') }}">
                 <i class="bi bi-calendar3"></i> {{ __('messages.Booking Calendar') }}
             </a>
+            @can('guest.manage')
+            <a class="nav-link {{ request()->routeIs('guest.requests.*') ? 'active' : '' }}" href="{{ route('guest.requests.index') }}">
+                <i class="bi bi-envelope-open"></i> {{ __('Guest booking requests') }}
+            </a>
+            @endcan
             @can('pos.manage')
             <span class="px-3 py-1 small text-white-50 text-uppercase">{{ __('messages.F&B') }}</span>
             <a class="nav-link {{ request()->routeIs('pos.*') ? 'active' : '' }}" href="{{ route('pos.index') }}">
@@ -106,16 +176,16 @@
                 <i class="bi bi-bucket"></i> {{ __('messages.Housekeeping') }}
             </a>
             @endcan
-            @can('minibar.manage')
+            <!-- @can('minibar.manage')
             <a class="nav-link {{ request()->routeIs('minibar.*') ? 'active' : '' }}" href="{{ route('minibar.index') }}">
                 <i class="bi bi-cup-straw"></i> {{ __('messages.Minibar') }}
             </a>
-            @endcan
-            @can('store.manage')
+            @endcan -->
+            <!-- @can('store.manage')
             <a class="nav-link {{ request()->routeIs('store.*') ? 'active' : '' }}" href="{{ route('store.index') }}">
                 <i class="bi bi-box-seam"></i> {{ __('messages.Store') }}
             </a>
-            @endcan
+            @endcan -->
             @can('maintenance.view')
             <a class="nav-link {{ request()->routeIs('maintenance.*') ? 'active' : '' }}" href="{{ route('maintenance.index') }}">
                 <i class="bi bi-tools"></i> {{ __('messages.Maintenance') }}
@@ -148,11 +218,7 @@
                 <i class="bi bi-graph-up"></i> {{ __('messages.Reports') }}
             </a>
             @endcan
-            @can('guest.manage')
-            <a class="nav-link {{ request()->routeIs('guest.requests.*') ? 'active' : '' }}" href="{{ route('guest.requests.index') }}">
-                <i class="bi bi-envelope-open"></i> {{ __('Guest booking requests') }}
-            </a>
-            @endcan
+           
             @canany(['departments.manage', 'users.manage', 'roles.manage'])
             <span class="px-3 py-1 small text-white-50 text-uppercase">{{ __('messages.Settings') }}</span>
             @endcanany
@@ -166,6 +232,12 @@
                 <i class="bi bi-people"></i> {{ __('messages.Users') }}
             </a>
             @endcan
+            @can('roles.manage')
+            <a class="nav-link {{ request()->routeIs('roles.*') ? 'active' : '' }}" href="{{ route('roles.index') }}">
+                <i class="bi bi-shield-lock"></i> {{ __('Roles') }}
+            </a>
+            @endcan
+            @endif
             @endif
         </nav>
     </aside>
@@ -184,20 +256,31 @@
                     <h1 class="h5 mb-0 text-muted">@yield('title', __('messages.Hotel Management'))</h1>
                 </div>
                 <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                    @if(auth()->user()->can('guest.manage') || auth()->user()->hasRole('Housekeeping') || auth()->user()->can('housekeeping.manage'))
-                    @php
-                        try {
-                            $unreadCount = auth()->user()->unreadNotifications()->count();
-                        } catch (\Throwable $e) {
-                            $unreadCount = 0;
-                        }
-                    @endphp
-                    <a href="{{ auth()->user()->can('guest.manage') ? route('guest.requests.index') : route('notifications.index') }}" class="btn btn-link text-dark position-relative p-2 text-decoration-none" title="{{ __('messages.Notifications') }}" aria-label="{{ __('messages.Notifications') }}">
-                        <i class="bi bi-bell fs-5"></i>
-                        @if($unreadCount > 0)
-                            <span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; min-width: 1.25rem;">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
-                        @endif
-                    </a>
+                    @if(auth()->user()->can('guest.manage') || auth()->user()->can('housekeeping.view') || auth()->user()->can('maintenance.manage'))
+                    <div class="dropdown">
+                        <button class="btn btn-link text-dark position-relative p-2 text-decoration-none dropdown-toggle" type="button" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="{{ __('messages.Notifications') }}" aria-label="{{ __('messages.Notifications') }}">
+                            <i class="bi bi-bell fs-5"></i>
+                            @if(($headerUnreadCount ?? 0) > 0)
+                                <span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; min-width: 1.25rem;">{{ ($headerUnreadCount ?? 0) > 99 ? '99+' : ($headerUnreadCount ?? 0) }}</span>
+                            @endif
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 notifications-dropdown" style="width: 360px; max-height: 70vh; overflow-y: auto;" aria-labelledby="notificationsDropdown">
+                            <li class="dropdown-header py-2">{{ __('messages.Notifications') }}</li>
+                            @forelse($headerNotifications ?? [] as $n)
+                                @php $data = $n->data ?? []; @endphp
+                                <li>
+                                    <a class="dropdown-item py-2 text-wrap {{ $n->read_at ? '' : 'bg-light' }}" href="{{ route('notifications.read', $n->id) }}">
+                                        <div class="small text-break" style="word-wrap: break-word; overflow-wrap: break-word; line-height: 1.35;">{{ $data['message'] ?? __('Notification') }}</div>
+                                        <small class="text-muted">{{ $n->created_at?->diffForHumans() }}</small>
+                                    </a>
+                                </li>
+                            @empty
+                                <li><span class="dropdown-item text-muted small py-3 text-center">{{ __('No notifications.') }}</span></li>
+                            @endforelse
+                            <li><hr class="dropdown-divider my-0"></li>
+                            <li><a class="dropdown-item small text-center py-2" href="{{ route('notifications.index') }}">{{ __('See all') }}</a></li>
+                        </ul>
+                    </div>
                     @endif
                     <form action="{{ route('language.switch') }}" method="POST" class="mb-0">
                         @csrf
@@ -207,11 +290,19 @@
                             @endforeach
                         </select>
                     </form>
-                    <a href="{{ auth()->user()->hasRole('Guest') ? route('guest.profile') : route('profile.edit') }}" class="d-flex align-items-center gap-2 text-decoration-none text-muted small" title="{{ __('Edit Profile') }}">
+                    @role('Guest')
+                    <a href="{{ route('guest.profile') }}" class="d-flex align-items-center gap-2 text-decoration-none text-muted small" title="{{ __('Edit Profile') }}">
                         <img src="{{ auth()->user()->profile_pic_url }}" alt="" class="rounded-circle" width="32" height="32" style="object-fit: cover;">
                         <span class="d-none d-sm-inline">{{ auth()->user()->name }}</span>
                         <i class="bi bi-pencil-square opacity-75 d-none d-md-inline"></i>
                     </a>
+                    @else
+                    <a href="{{ route('profile.edit') }}" class="d-flex align-items-center gap-2 text-decoration-none text-muted small" title="{{ __('Edit Profile') }}">
+                        <img src="{{ auth()->user()->profile_pic_url }}" alt="" class="rounded-circle" width="32" height="32" style="object-fit: cover;">
+                        <span class="d-none d-sm-inline">{{ auth()->user()->name }}</span>
+                        <i class="bi bi-pencil-square opacity-75 d-none d-md-inline"></i>
+                    </a>
+                    @endif
                     <form action="{{ route('logout') }}" method="POST" class="mb-0">
                         @csrf
                         <button type="submit" class="btn btn-outline-secondary btn-sm">

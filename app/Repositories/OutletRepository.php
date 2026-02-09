@@ -11,7 +11,7 @@ class OutletRepository
 
     public function all(bool $activeOnly = true): Collection
     {
-        $q = $this->model->newQuery()->orderBy('type')->orderBy('name');
+        $q = $this->model->newQuery()->orderByDesc('id');
         if ($activeOnly) {
             $q->where('is_active', true);
         }

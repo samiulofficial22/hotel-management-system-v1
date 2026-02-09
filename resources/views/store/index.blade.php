@@ -4,10 +4,10 @@
 <h1 class="h3 mb-4">Store Inventory</h1>
 <p><a href="{{ route('store.create') }}" class="btn btn-primary">Add Item</a></p>
 <table class="table table-striped">
-<thead><tr><th>Name</th><th>Qty</th><th>Unit</th><th></th></tr></thead>
+<thead><tr><th>ID</th><th>Name</th><th>Qty</th><th>Unit</th><th></th></tr></thead>
 <tbody>
 @foreach($items as $i)
-<tr><td>{{ $i->name }}</td><td>{{ $i->quantity }}</td><td>{{ $i->unit }}</td><td><a href="{{ route('store.edit', $i) }}">Edit</a></td></tr>
+<tr><td>{{ $loop->iteration }}</td><td>{{ $i->name }}</td><td>{{ $i->quantity }}</td><td>{{ $i->unit }}</td><td><a href="{{ route('store.edit', $i) }}">Edit</a></td></tr>
 @endforeach
 </tbody>
 </table>

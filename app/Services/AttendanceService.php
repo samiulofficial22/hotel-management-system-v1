@@ -26,10 +26,18 @@ class AttendanceService
         return $this->repository->find($id);
     }
 
-    public function markAttendance(int $employeeId, Carbon $date, ?string $checkIn = null, ?string $checkOut = null, string $status = 'present'): Attendance
+    public function markAttendance(int $employeeId, Carbon $date, ?string $checkIn = null, ?string $checkOut = null, string $status = 'present', ?string $notes = null): Attendance
     {
         $a = $this->repository->firstOrCreateForEmployeeDate($employeeId, $date);
-        $this->repository->update($a, array_filter(['check_in' => $checkIn, 'check_out' => $checkOut, 'status' => $status]));
+        $data = [
+            'check_in' => $checkIn ?: null,
+            'check_out' => $checkOut ?: null,
+            'status' => $status,
+        ];
+        if ($notes !== null && $notes !== '') {
+            $data['notes'] = $notes;
+        }
+        $this->repository->update($a, $data);
         return $a->fresh();
     }
 

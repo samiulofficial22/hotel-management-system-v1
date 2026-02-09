@@ -29,5 +29,10 @@
 </div>
 <button type="submit" class="btn btn-primary">Update</button>
 <a href="{{ route('outlets.index') }}" class="btn btn-secondary">Cancel</a>
+<hr class="my-4">
+<form action="{{ route('outlets.destroy', $outlet) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('Delete this outlet? This cannot be undone.') }}');">
+    @csrf
+    @method('DELETE')
+    <button type="submit" class="btn btn-outline-danger">Delete Outlet</button>
 </form>
 @endsection

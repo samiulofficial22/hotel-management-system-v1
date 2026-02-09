@@ -67,4 +67,60 @@ class LedgerEntryService
             ]);
         });
     }
+
+    /** Sum of (debit - credit) for expense accounts in date range. */
+    public function totalExpense(Carbon $from, Carbon $to): float
+    {
+        $accountIds = \App\Models\ChartOfAccount::where('type', 'expense')->where('is_active', true)->pluck('id');
+        $debit = (float) LedgerEntry::whereIn('account_id', $accountIds)->whereBetween('entry_date', [$from->toDateString(), $to->toDateString()])->sum('debit');
+        $credit = (float) LedgerEntry::whereIn('account_id', $accountIds)->whereBetween('entry_date', [$from->toDateString(), $to->toDateString()])->sum('credit');
+        return $debit - $credit;
+    }
+
+    /** Sum of (credit - debit) for revenue accounts in date range. */
+    public function totalRevenue(Carbon $from, Carbon $to): float
+    {
+        $accountIds = \App\Models\ChartOfAccount::where('type', 'revenue')->where('is_active', true)->pluck('id');
+        $debit = (float) LedgerEntry::whereIn('account_id', $accountIds)->whereBetween('entry_date', [$from->toDateString(), $to->toDateString()])->sum('debit');
+        $credit = (float) LedgerEntry::whereIn('account_id', $accountIds)->whereBetween('entry_date', [$from->toDateString(), $to->toDateString()])->sum('credit');
+        return $credit - $debit;
+    }
+
+    /** Expense breakdown by account (code, name, amount) for date range. */
+    public function expenseByAccount(Carbon $from, Carbon $to): array
+    {
+        $accounts = \App\Models\ChartOfAccount::where('type', 'expense')->where('is_active', true)->orderBy('sort_order')->get();
+        $result = [];
+        foreach ($accounts as $acc) {
+            $debit = (float) LedgerEntry::where('account_id', $acc->id)->whereBetween('entry_date', [$from->toDateString(), $to->toDateString()])->sum('debit');
+            $credit = (float) LedgerEntry::where('account_id', $acc->id)->whereBetween('entry_date', [$from->toDateString(), $to->toDateString()])->sum('credit');
+            $amount = $debit - $credit;
+            if ($amount != 0) {
+                $result[] = ['code' => $acc->code, 'name' => $acc->name, 'amount' => $amount];
+            }
+        }
+        return $result;
+    }
+
+    /** Daily cash movement: date => net (debit - credit) for CASH account. */
+    public function dailyCashSummary(Carbon $from, Carbon $to): array
+    {
+        $cashAccount = \App\Models\ChartOfAccount::where('code', 'CASH')->where('is_active', true)->first();
+        if (! $cashAccount) {
+            return [];
+        }
+        $entries = LedgerEntry::where('account_id', $cashAccount->id)
+            ->whereBetween('entry_date', [$from->toDateString(), $to->toDateString()])
+            ->selectRaw('entry_date, SUM(debit) as debit, SUM(credit) as credit')
+            ->groupBy('entry_date')
+            ->orderBy('entry_date')
+            ->get();
+        return $entries->mapWithKeys(function ($row) {
+            $net = (float) $row->debit - (float) $row->credit;
+            $dateKey = $row->entry_date instanceof Carbon
+                ? $row->entry_date->toDateString()
+                : Carbon::parse($row->entry_date)->toDateString();
+            return [$dateKey => $net];
+        })->all();
+    }
 }

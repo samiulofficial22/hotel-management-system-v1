@@ -20,4 +20,10 @@
 <button type="submit" class="btn btn-primary">Update</button>
 <a href="{{ route('menu.categories.index', $outlet) }}" class="btn btn-secondary">Cancel</a>
 </form>
+<hr class="my-4">
+<form action="{{ route('menu.categories.destroy', [$outlet, $category]) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('Delete this category? This cannot be undone.') }}');">
+    @csrf
+    @method('DELETE')
+    <button type="submit" class="btn btn-outline-danger">Delete Category</button>
+</form>
 @endsection

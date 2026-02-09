@@ -2,7 +2,7 @@
 @section('title', 'Add Menu Item')
 @section('content')
 <h1 class="h3 mb-4">Add Menu Item: {{ $outlet->name }}</h1>
-<form method="POST" action="{{ route('menu.items.store', $outlet) }}">
+<form method="POST" action="{{ route('menu.items.store', $outlet) }}" enctype="multipart/form-data">
 @csrf
 <div class="mb-3">
     <label class="form-label">Category</label>
@@ -32,6 +32,12 @@
 <div class="mb-3">
     <label class="form-label">Description (optional)</label>
     <textarea name="description" class="form-control" rows="2">{{ old('description') }}</textarea>
+</div>
+<div class="mb-3">
+    <label class="form-label">Image (optional)</label>
+    <input type="file" name="image" class="form-control" accept=".jpg,.jpeg,.png">
+    <small class="text-muted">JPG or PNG, max 2MB</small>
+    @error('image')<div class="text-danger small">{{ $message }}</div>@enderror
 </div>
 <div class="mb-3 form-check">
     <input type="checkbox" name="is_available" value="1" class="form-check-input" {{ old('is_available', true) ? 'checked' : '' }}>

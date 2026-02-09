@@ -50,4 +50,14 @@ class OutletController extends Controller
             return back()->withErrors($e->errors())->withInput();
         }
     }
+
+    public function destroy(Outlet $outlet): RedirectResponse
+    {
+        try {
+            $this->service->delete($outlet);
+            return redirect()->route('outlets.index')->with('success', __('Outlet deleted.'));
+        } catch (ValidationException $e) {
+            return redirect()->route('outlets.index')->withErrors($e->errors());
+        }
+    }
 }

@@ -61,7 +61,7 @@ class BookingRepository
 
     public function paginate(int $perPage = 15, ?string $status = null): LengthAwarePaginator
     {
-        $q = $this->model->newQuery()->with(['guest', 'room.roomType'])->orderByDesc('created_at');
+        $q = $this->model->newQuery()->with(['guest', 'room.roomType'])->orderByDesc('id');
         if ($status !== null) {
             $q->where('status', $status);
         }
@@ -71,7 +71,7 @@ class BookingRepository
     /** Paginate with optional search (booking number, guest name, room number) and status filter. */
     public function paginateWithSearch(int $perPage = 15, ?string $search = null, ?string $status = null): LengthAwarePaginator
     {
-        $q = $this->model->newQuery()->with(['guest', 'room.roomType'])->orderByDesc('created_at');
+        $q = $this->model->newQuery()->with(['guest', 'room.roomType'])->orderByDesc('id');
         if ($search !== null && trim($search) !== '') {
             $term = '%' . trim($search) . '%';
             $q->where(function ($query) use ($term) {

@@ -27,6 +27,7 @@ class Payment extends Model
         'payment_number',
         'invoice_id',
         'booking_id',
+        'pos_order_id',
         'amount',
         'method',
         'reference',
@@ -51,6 +52,12 @@ class Payment extends Model
     public function booking(): BelongsTo
     {
         return $this->belongsTo(Booking::class);
+    }
+
+    /** @return BelongsTo<PosOrder, $this> */
+    public function posOrder(): BelongsTo
+    {
+        return $this->belongsTo(PosOrder::class, 'pos_order_id');
     }
 
     /** @return BelongsTo<User, $this> */

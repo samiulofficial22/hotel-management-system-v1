@@ -33,7 +33,7 @@ class RoomTypeRepository
 
     public function paginate(int $perPage = 15): LengthAwarePaginator
     {
-        return $this->model->newQuery()->orderBy('name')->paginate($perPage);
+        return $this->model->newQuery()->orderByDesc('id')->paginate($perPage);
     }
 
     public function create(array $data): RoomType

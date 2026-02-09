@@ -21,7 +21,7 @@
 <thead><tr><th>Date</th><th>Account</th><th>Description</th><th>Debit</th><th>Credit</th></tr></thead>
 <tbody>
 @foreach($entries as $e)
-<tr><td>{{ $e->entry_date->format('Y-m-d') }}</td><td>{{ $e->account->code ?? '-' }}</td><td>{{ $e->description ?? '-' }}</td><td>{{ number_format($e->debit, 2) }}</td><td>{{ number_format($e->credit, 2) }}</td></tr>
+<tr><td>{{ $e->entry_date->format('Y-m-d') }}</td><td>{{ $e->account->code ?? '-' }}</td><td>{{ $e->description ?? '-' }}</td><td>{{ money($e->debit) }}</td><td>{{ money($e->credit) }}</td></tr>
 @endforeach
 </tbody>
 </table>

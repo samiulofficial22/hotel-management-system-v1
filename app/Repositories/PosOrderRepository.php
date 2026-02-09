@@ -67,7 +67,7 @@ class PosOrderRepository
     public function getCompletedOrdersForReport(Carbon $from, Carbon $to, ?int $outletId = null): Collection
     {
         $q = $this->model->newQuery()
-            ->with(['items.menuItem', 'outlet', 'posTable'])
+            ->with(['items.menuItem', 'outlet', 'posTable', 'payments'])
             ->where('status', PosOrder::STATUS_COMPLETED)
             ->whereNotNull('completed_at')
             ->whereBetween('completed_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])

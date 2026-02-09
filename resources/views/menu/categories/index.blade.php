@@ -15,7 +15,14 @@
     <td>{{ $c->name }}</td>
     <td>{{ $c->sort_order }}</td>
     <td>{{ $c->is_active ? 'Yes' : 'No' }}</td>
-    <td><a href="{{ route('menu.categories.edit', [$outlet, $c]) }}" class="btn btn-sm btn-outline-primary">Edit</a></td>
+    <td>
+        <a href="{{ route('menu.categories.edit', [$outlet, $c]) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+        <form action="{{ route('menu.categories.destroy', [$outlet, $c]) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('Delete this category?') }}');">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+        </form>
+    </td>
 </tr>
 @endforeach
 </tbody>

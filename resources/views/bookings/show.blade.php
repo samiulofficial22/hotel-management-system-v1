@@ -72,7 +72,7 @@
                         <small class="text-muted">({{ $booking->room->roomType->name }})</small>
                     @endif
                 </p>
-                <p class="mb-1"><strong>Room rate:</strong> {{ number_format($booking->room_rate, 2) }}</p>
+                <p class="mb-1"><strong>Room rate:</strong> {{ money($booking->room_rate) }}</p>
                 <p class="mb-0"><strong>Status:</strong> {{ $badge['label'] }}</p>
             </div>
         </div>
@@ -117,13 +117,16 @@
                     @endphp
                     <tr>
                         <td>{{ $inv->invoice_number }}</td>
-                        <td>{{ number_format($inv->total_amount, 2) }}</td>
-                        <td>{{ number_format($paid, 2) }}</td>
-                        <td>{{ number_format($balance, 2) }}</td>
+                        <td>{{ money($inv->total_amount) }}</td>
+                        <td>{{ money($paid) }}</td>
+                        <td>{{ money($balance) }}</td>
                         <td>{{ $inv->status }}</td>
                         <td class="text-end">
                             @can('invoices.manage')
-                            <a href="{{ route('invoices.pdf', $inv) }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                            <a href="{{ route('invoices.pdf.view', $inv) }}" class="btn btn-sm btn-outline-secondary" target="_blank" title="View PDF in browser">
+                                View PDF
+                            </a>
+                            <a href="{{ route('invoices.pdf', $inv) }}" class="btn btn-sm btn-outline-primary" target="_blank" title="Download PDF">
                                 Download PDF
                             </a>
                             @endcan

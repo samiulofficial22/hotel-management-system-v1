@@ -46,10 +46,11 @@
 
 <div class="table-responsive">
 <table class="table table-striped">
-<thead><tr><th>Booking #</th><th>Guest</th><th>Room</th><th>Check-in</th><th>Check-out</th><th>Status</th><th></th></tr></thead>
+<thead><tr><th>ID</th><th>Booking #</th><th>Guest</th><th>Room</th><th>Check-in</th><th>Check-out</th><th>Status</th><th></th></tr></thead>
 <tbody>
 @foreach($bookings as $b)
 <tr>
+<td>{{ ($bookings->currentPage() - 1) * $bookings->perPage() + $loop->iteration }}</td>
 <td>{{ $b->booking_number }}</td>
 <td>{{ $b->guest->full_name ?? '-' }}</td>
 <td>{{ $b->room->number ?? '-' }}</td>

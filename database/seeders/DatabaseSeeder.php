@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             InvoiceAndPaymentSeeder::class,
             OutletAndPosSeeder::class,
             BanquetVenueSeeder::class,
+            ChartOfAccountSeeder::class,
         ]);
     }
 }

@@ -16,7 +16,7 @@ class MaintenanceRequestRepository
 
     public function paginate(int $perPage = 15, ?string $status = null): LengthAwarePaginator
     {
-        $q = $this->model->newQuery()->with(['room', 'reportedBy', 'assignedTo'])->orderByDesc('created_at');
+        $q = $this->model->newQuery()->with(['room', 'reportedBy', 'assignedTo'])->orderByDesc('id');
         if ($status !== null) {
             $q->where('status', $status);
         }

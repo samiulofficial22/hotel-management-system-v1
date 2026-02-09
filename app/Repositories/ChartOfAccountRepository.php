@@ -11,7 +11,7 @@ class ChartOfAccountRepository
 
     public function all(bool $activeOnly = true): Collection
     {
-        $q = $this->model->newQuery()->orderBy('code');
+        $q = $this->model->newQuery()->orderBy('sort_order')->orderBy('code');
         if ($activeOnly) {
             $q->where('is_active', true);
         }

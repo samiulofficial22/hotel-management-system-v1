@@ -22,15 +22,24 @@ class ProfileController extends Controller
 
         $rules = [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
             'profile_pic' => ['nullable', 'image', 'mimes:jpeg,jpg,png', 'max:2048'],
         ];
+
+        if ($user->hasRole('Admin')) {
+            $rules['email'] = ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id];
+        } else {
+            $rules['email'] = ['required', 'string', 'email', 'in:' . $user->email];
+        }
 
         if ($request->filled('password')) {
             $rules['password'] = ['required', 'confirmed', Password::defaults()];
         }
 
         $validated = $request->validate($rules);
+
+        if (! $user->hasRole('Admin')) {
+            $validated['email'] = $user->email;
+        }
 
         if ($request->hasFile('profile_pic')) {
             if ($user->profile_pic) {

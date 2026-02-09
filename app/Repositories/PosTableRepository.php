@@ -29,4 +29,9 @@ class PosTableRepository
         $table->update($data);
         return $table->fresh();
     }
+
+    public function delete(PosTable $table): void
+    {
+        $table->delete();
+    }
 }

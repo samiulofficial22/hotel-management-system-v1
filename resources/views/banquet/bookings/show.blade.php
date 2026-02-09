@@ -8,7 +8,7 @@
     <dt class="col-sm-3">Event date</dt>
     <dd class="col-sm-9">{{ $booking->event_date->format('Y-m-d') }}</dd>
     <dt class="col-sm-3">Time</dt>
-    <dd class="col-sm-9">{{ $booking->start_time }} - {{ $booking->end_time }}</dd>
+    <dd class="col-sm-9">{{ \Carbon\Carbon::parse($booking->start_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($booking->end_time)->format('h:i A') }}</dd>
     <dt class="col-sm-3">Guest count</dt>
     <dd class="col-sm-9">{{ $booking->guest_count }}</dd>
     <dt class="col-sm-3">Status</dt>

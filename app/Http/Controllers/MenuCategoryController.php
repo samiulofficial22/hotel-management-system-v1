@@ -54,4 +54,17 @@ class MenuCategoryController extends Controller
             return back()->withErrors($e->errors())->withInput();
         }
     }
+
+    public function destroy(Outlet $outlet, MenuCategory $category): RedirectResponse
+    {
+        if ($category->outlet_id !== $outlet->id) {
+            abort(404);
+        }
+        try {
+            $this->service->delete($category);
+            return redirect()->route('menu.categories.index', $outlet)->with('success', __('Category deleted.'));
+        } catch (ValidationException $e) {
+            return redirect()->route('menu.categories.index', $outlet)->withErrors($e->errors());
+        }
+    }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Payment;
+use App\Models\PosActionLog;
 use App\Models\PosOrder;
 use App\Models\PosOrderItem;
 use App\Repositories\PosOrderRepository;
@@ -10,12 +12,14 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class PosOrderService
 {
     public function __construct(
         protected PosOrderRepository $repository,
-        protected MenuItemRepository $menuItemRepository
+        protected MenuItemRepository $menuItemRepository,
+        protected InvoiceService $invoiceService
     ) {}
 
     public function find(int $id): ?PosOrder
@@ -38,11 +42,13 @@ class PosOrderService
         return $this->repository->paginateByOutlet($outletId, $perPage);
     }
 
-    /** Completed orders for report (date range, optional outlet). Returns [orders, revenue, cost, profit]. */
+    /** Completed orders for report (date range, optional outlet). Returns [orders, revenue, cost, profit]. Revenue = paid + posted_to_room only. */
     public function getCompletedOrdersReport(Carbon $from, Carbon $to, ?int $outletId = null): array
     {
         $orders = $this->repository->getCompletedOrdersForReport($from, $to, $outletId);
-        $revenue = $orders->sum('total');
+        $revenue = $orders->whereIn('payment_status', [PosOrder::PAYMENT_STATUS_PAID, PosOrder::PAYMENT_STATUS_POSTED_TO_ROOM])->sum('total');
+        // Backward compatibility: orders with null payment_status (legacy) count as paid
+        $revenue += $orders->whereNull('payment_status')->sum('total');
         $cost = 0;
         foreach ($orders as $order) {
             foreach ($order->items as $item) {
@@ -58,19 +64,24 @@ class PosOrderService
         ];
     }
 
-    public function create(int $outletId, ?int $posTableId, int $userId): PosOrder
+    public function create(int $outletId, ?int $posTableId, int $userId, ?int $guestId = null, ?int $bookingId = null, string $posType = PosOrder::POS_TYPE_RESTAURANT): PosOrder
     {
-        return DB::transaction(function () use ($outletId, $posTableId, $userId) {
+        return DB::transaction(function () use ($outletId, $posTableId, $userId, $guestId, $bookingId, $posType) {
             $order = $this->repository->create([
                 'outlet_id' => $outletId,
                 'pos_table_id' => $posTableId,
                 'order_number' => $this->repository->generateOrderNumber(),
                 'status' => PosOrder::STATUS_OPEN,
+                'payment_status' => PosOrder::PAYMENT_STATUS_PENDING,
+                'pos_type' => $posType,
+                'guest_id' => $guestId,
+                'booking_id' => $bookingId,
                 'subtotal' => 0,
                 'tax_amount' => 0,
                 'total' => 0,
                 'served_by' => $userId,
             ]);
+            $this->logAction($order->id, PosActionLog::ACTION_CREATE, ['guest_id' => $guestId, 'booking_id' => $bookingId, 'pos_type' => $posType]);
             return $order->fresh();
         });
     }
@@ -96,6 +107,7 @@ class PosOrderService
         ]);
 
         $this->recalculateOrderTotals($order);
+        $this->logAction($order->id, PosActionLog::ACTION_ADD_ITEM, ['menu_item_id' => $menuItemId, 'quantity' => $quantity]);
         return $orderItem->fresh();
     }
 
@@ -103,6 +115,7 @@ class PosOrderService
     {
         $order->items()->where('id', $orderItemId)->delete();
         $this->recalculateOrderTotals($order);
+        $this->logAction($order->id, PosActionLog::ACTION_REMOVE_ITEM, ['order_item_id' => $orderItemId]);
     }
 
     public function sendToKitchen(PosOrder $order): PosOrder
@@ -124,11 +137,111 @@ class PosOrderService
 
     public function completeOrder(PosOrder $order): PosOrder
     {
+        if (in_array($order->payment_status, [PosOrder::PAYMENT_STATUS_PAID, PosOrder::PAYMENT_STATUS_POSTED_TO_ROOM, PosOrder::PAYMENT_STATUS_VOIDED], true)) {
+            return $order->fresh();
+        }
         $order->update(['status' => PosOrder::STATUS_COMPLETED, 'completed_at' => now()]);
         if ($order->pos_table_id) {
             $order->posTable?->update(['status' => \App\Models\PosTable::STATUS_AVAILABLE]);
         }
+        $this->logAction($order->id, PosActionLog::ACTION_COMPLETE, []);
         return $order->fresh();
+    }
+
+    /**
+     * Record payment(s) for order (supports partial/split). Sets payment_status to paid.
+     */
+    public function payOrder(PosOrder $order, array $payments): PosOrder
+    {
+        if ($order->payment_status !== PosOrder::PAYMENT_STATUS_PENDING) {
+            throw ValidationException::withMessages(['order' => __('Order is already paid or posted to room.')]);
+        }
+        $totalPaid = array_sum(array_column($payments, 'amount'));
+        if (abs((float) $totalPaid - (float) $order->total) > 0.01) {
+            throw ValidationException::withMessages(['order' => __('Total payment must match order total.')]);
+        }
+        return DB::transaction(function () use ($order, $payments) {
+            $seq = 1;
+            foreach ($payments as $p) {
+                $paymentNumber = 'POS-' . $order->order_number . '-' . $seq;
+                Payment::create([
+                    'payment_number' => $paymentNumber,
+                    'invoice_id' => null,
+                    'booking_id' => $order->booking_id,
+                    'pos_order_id' => $order->id,
+                    'amount' => (float) $p['amount'],
+                    'method' => $p['method'] ?? Payment::METHOD_CASH,
+                    'reference' => $p['reference'] ?? null,
+                    'status' => Payment::STATUS_COMPLETED,
+                    'payment_date' => now(),
+                    'received_by' => auth()->id(),
+                ]);
+                $seq++;
+            }
+            $order->update(['payment_status' => PosOrder::PAYMENT_STATUS_PAID]);
+            $this->logAction($order->id, PosActionLog::ACTION_PAY, ['payments' => $payments]);
+            return $order->fresh();
+        });
+    }
+
+    /**
+     * Post order total to guest's room invoice (no immediate payment). Requires booking_id.
+     */
+    public function postOrderToRoom(PosOrder $order): PosOrder
+    {
+        if ($order->payment_status !== PosOrder::PAYMENT_STATUS_PENDING) {
+            throw ValidationException::withMessages(['order' => __('Order is already paid or posted to room.')]);
+        }
+        if (!$order->booking_id) {
+            throw ValidationException::withMessages(['order' => __('Select a booking to post to room.')]);
+        }
+        $booking = $order->booking;
+        if (!$booking || !in_array($booking->status, [\App\Models\Booking::STATUS_CHECKED_IN, \App\Models\Booking::STATUS_CONFIRMED], true)) {
+            throw ValidationException::withMessages(['order' => __('Booking must be checked in to post to room.')]);
+        }
+        return DB::transaction(function () use ($order) {
+            $invoice = $this->invoiceService->getOrCreateOpenInvoiceForBooking($order->booking);
+            $description = 'POS #' . $order->order_number . ' - ' . str_replace('_', ' ', ucfirst($order->pos_type)) . ' - ' . number_format($order->total, 2);
+            $this->invoiceService->addPosCharge($invoice, $description, (float) $order->total);
+            $order->update([
+                'payment_status' => PosOrder::PAYMENT_STATUS_POSTED_TO_ROOM,
+                'invoice_id' => $invoice->id,
+            ]);
+            $this->logAction($order->id, PosActionLog::ACTION_POST_TO_ROOM, ['invoice_id' => $invoice->id]);
+            return $order->fresh();
+        });
+    }
+
+    /**
+     * Void order (manager only). Cannot void if already paid - require refund flow separately if needed.
+     */
+    public function voidOrder(PosOrder $order): PosOrder
+    {
+        if (!$order->canVoid()) {
+            throw ValidationException::withMessages(['order' => __('Order is already voided.')]);
+        }
+        if ($order->isPaid()) {
+            throw ValidationException::withMessages(['order' => __('Cannot void a paid order. Refund via payments if needed.')]);
+        }
+        $order->update([
+            'payment_status' => PosOrder::PAYMENT_STATUS_VOIDED,
+            'status' => PosOrder::STATUS_CANCELLED,
+        ]);
+        if ($order->pos_table_id) {
+            $order->posTable?->update(['status' => \App\Models\PosTable::STATUS_AVAILABLE]);
+        }
+        $this->logAction($order->id, PosActionLog::ACTION_VOID, []);
+        return $order->fresh();
+    }
+
+    protected function logAction(?int $posOrderId, string $action, array $details): void
+    {
+        PosActionLog::create([
+            'pos_order_id' => $posOrderId,
+            'user_id' => auth()->id(),
+            'action' => $action,
+            'details' => $details,
+        ]);
     }
 
     public function cancelOrder(PosOrder $order): PosOrder

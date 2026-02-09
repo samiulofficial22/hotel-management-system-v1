@@ -42,4 +42,16 @@ class PosTableService
     {
         return $this->repository->update($table, $data);
     }
+
+    /** Delete table. Fails if table has open (non-completed) orders. */
+    public function delete(PosTable $table): void
+    {
+        $openOrders = $table->posOrders()->whereIn('status', ['pending', 'sent_to_kitchen'])->exists();
+        if ($openOrders) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'table' => [__('Table has open orders. Complete or void them first.')],
+            ]);
+        }
+        $this->repository->delete($table);
+    }
 }

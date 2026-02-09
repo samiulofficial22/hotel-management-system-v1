@@ -101,7 +101,7 @@
                             <article class="card room-card h-100 shadow-sm">
                                 <div class="card-img-wrap position-relative" style="background-image: url('https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=600');">
                                     @if($type->base_rate !== null)
-                                        <span class="price-badge position-absolute bottom-0 end-0 m-2">${{ number_format($type->base_rate, 0) }}/{{ __('messages.per night') }}</span>
+                                        <span class="price-badge position-absolute bottom-0 end-0 m-2">{{ money($type->base_rate, 0) }}/{{ __('messages.per night') }}</span>
                                     @endif
                                 </div>
                                 <div class="card-body">

@@ -5,12 +5,13 @@
 <p>
     <a href="{{ route('accounts.create') }}" class="btn btn-primary">Add Account</a>
     <a href="{{ route('accounts.ledger') }}" class="btn btn-outline-primary">Ledger</a>
+    <a href="{{ route('accounts.reports.index') }}" class="btn btn-outline-secondary">Reports</a>
 </p>
 <table class="table table-striped">
-<thead><tr><th>Code</th><th>Name</th><th>Type</th><th>Active</th><th></th></tr></thead>
+<thead><tr><th>ID</th><th>Code</th><th>Name</th><th>Type</th><th>Active</th><th></th></tr></thead>
 <tbody>
 @foreach($accounts as $a)
-<tr><td>{{ $a->code }}</td><td>{{ $a->name }}</td><td>{{ $a->type }}</td><td>{{ $a->is_active ? 'Yes' : 'No' }}</td><td><a href="{{ route('accounts.edit', $a) }}">Edit</a></td></tr>
+<tr><td>{{ $loop->iteration }}</td><td>{{ $a->code }}</td><td>{{ $a->name }}</td><td>{{ $a->type }}</td><td>{{ $a->is_active ? 'Yes' : 'No' }}</td><td><a href="{{ route('accounts.edit', $a) }}">Edit</a></td></tr>
 @endforeach
 </tbody>
 </table>

@@ -18,7 +18,7 @@ class BanquetBookingRepository
 
     public function paginate(int $perPage = 15, ?string $status = null): LengthAwarePaginator
     {
-        $q = $this->model->newQuery()->with('banquetVenue')->orderByDesc('event_date')->orderBy('start_time');
+        $q = $this->model->newQuery()->with('banquetVenue')->orderByDesc('id');
         if ($status !== null) {
             $q->where('status', $status);
         }
@@ -28,7 +28,7 @@ class BanquetBookingRepository
     /** Paginate with optional search (event name, contact name, venue) and status filter. */
     public function paginateWithSearch(int $perPage = 15, ?string $search = null, ?string $status = null): LengthAwarePaginator
     {
-        $q = $this->model->newQuery()->with('banquetVenue')->orderByDesc('event_date')->orderBy('start_time');
+        $q = $this->model->newQuery()->with('banquetVenue')->orderByDesc('id');
         if ($search !== null && trim($search) !== '') {
             $term = '%' . trim($search) . '%';
             $q->where(function ($query) use ($term) {
