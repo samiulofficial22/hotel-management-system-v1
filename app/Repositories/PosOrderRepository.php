@@ -9,7 +9,9 @@ use Illuminate\Database\Eloquent\Collection;
 
 class PosOrderRepository
 {
-    public function __construct(protected PosOrder $model) {}
+    public function __construct(protected PosOrder $model)
+    {
+    }
 
     public function find(int $id): ?PosOrder
     {
@@ -21,15 +23,25 @@ class PosOrderRepository
         return $this->model->newQuery()
             ->with(['items.menuItem', 'posTable'])
             ->where('outlet_id', $outletId)
-            ->whereIn('status', [PosOrder::STATUS_OPEN, PosOrder::STATUS_SENT_TO_KITCHEN, PosOrder::STATUS_PREPARING, PosOrder::STATUS_READY])
+            ->whereIn('status', [PosOrder::STATUS_OPEN, PosOrder::STATUS_SENT_TO_KITCHEN, PosOrder::STATUS_PREPARING, PosOrder::STATUS_READY, PosOrder::STATUS_COMPLETED])
+            ->where('payment_status', PosOrder::PAYMENT_STATUS_PENDING)
             ->orderByDesc('created_at')
             ->get();
+    }
+
+    public function hasOpenOrderForTable(int $tableId): bool
+    {
+        return $this->model->newQuery()
+            ->where('pos_table_id', $tableId)
+            ->whereIn('status', [PosOrder::STATUS_OPEN, PosOrder::STATUS_SENT_TO_KITCHEN, PosOrder::STATUS_PREPARING, PosOrder::STATUS_READY, PosOrder::STATUS_COMPLETED])
+            ->where('payment_status', PosOrder::PAYMENT_STATUS_PENDING)
+            ->exists();
     }
 
     public function kitchenPending(): Collection
     {
         return $this->model->newQuery()
-            ->with(['items' => fn ($q) => $q->whereIn('status', ['pending', 'sent_to_kitchen', 'preparing']), 'items.menuItem', 'outlet', 'posTable'])
+            ->with(['items' => fn($q) => $q->whereIn('status', ['pending', 'sent_to_kitchen', 'preparing']), 'items.menuItem', 'outlet', 'posTable'])
             ->whereIn('status', [PosOrder::STATUS_OPEN, PosOrder::STATUS_SENT_TO_KITCHEN, PosOrder::STATUS_PREPARING, PosOrder::STATUS_READY])
             ->orderBy('created_at')
             ->get();
@@ -59,8 +71,8 @@ class PosOrderRepository
     {
         $prefix = 'POS-' . date('Ymd');
         $last = $this->model->where('order_number', 'like', $prefix . '%')->orderByDesc('id')->first();
-        $seq = $last ? (int) substr($last->order_number, -4) + 1 : 1;
-        return $prefix . str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
+        $seq = $last ? (int)substr($last->order_number, -4) + 1 : 1;
+        return $prefix . str_pad((string)$seq, 4, '0', STR_PAD_LEFT);
     }
 
     /** Completed orders for date range (by completed_at), optional outlet filter. */

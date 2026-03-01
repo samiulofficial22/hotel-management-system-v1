@@ -13,7 +13,7 @@ class PosTable extends Model
     protected $fillable = ['outlet_id', 'name', 'capacity', 'status', 'sort_order'];
 
     public const STATUS_AVAILABLE = 'available';
-    public const STATUS_OCCUPIED = 'occupied';
+    public const STATUS_BOOKED = 'booked';
 
     /** @return BelongsTo<Outlet, $this> */
     public function outlet(): BelongsTo

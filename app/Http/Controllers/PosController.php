@@ -18,12 +18,14 @@ use Illuminate\Validation\ValidationException;
 
 class PosController extends Controller
 {
-    public function __construct(
-        protected OutletService $outletService,
-        protected PosOrderService $orderService,
-        protected PosTableService $tableService,
-        protected MenuItemService $menuItemService
-    ) {}
+    public function __construct(protected
+        OutletService $outletService, protected
+        PosOrderService $orderService, protected
+        PosTableService $tableService, protected
+        MenuItemService $menuItemService
+        )
+    {
+    }
 
     public function index(): View
     {
@@ -34,9 +36,9 @@ class PosController extends Controller
     /** Orders list & profit/loss report (completed orders by date range). */
     public function ordersList(Request $request): View
     {
-        $from = $request->filled('from') ? Carbon::parse($request->from) : now()->startOfMonth();
-        $to = $request->filled('to') ? Carbon::parse($request->to) : now()->endOfMonth();
-        $outletId = $request->filled('outlet_id') ? (int) $request->outlet_id : null;
+        $from = $request->filled('from') ?Carbon::parse($request->from) : now()->startOfMonth();
+        $to = $request->filled('to') ?Carbon::parse($request->to) : now()->endOfMonth();
+        $outletId = $request->filled('outlet_id') ? (int)$request->outlet_id : null;
         $report = $this->orderService->getCompletedOrdersReport($from, $to, $outletId);
         $outlets = $this->outletService->all(true);
         return view('pos.orders-list', [
@@ -54,24 +56,24 @@ class PosController extends Controller
     /** POS reports: daily sales, by type, payment method, room charge vs instant. */
     public function reports(Request $request): View
     {
-        $from = $request->filled('from') ? Carbon::parse($request->from) : now()->startOfMonth();
-        $to = $request->filled('to') ? Carbon::parse($request->to) : now()->endOfMonth();
-        $outletId = $request->filled('outlet_id') ? (int) $request->outlet_id : null;
+        $from = $request->filled('from') ?Carbon::parse($request->from) : now()->startOfMonth();
+        $to = $request->filled('to') ?Carbon::parse($request->to) : now()->endOfMonth();
+        $outletId = $request->filled('outlet_id') ? (int)$request->outlet_id : null;
         $report = $this->orderService->getCompletedOrdersReport($from, $to, $outletId);
         $orders = $report['orders'];
         $paidOrders = $orders->where('payment_status', PosOrder::PAYMENT_STATUS_PAID);
         $postedOrders = $orders->where('payment_status', PosOrder::PAYMENT_STATUS_POSTED_TO_ROOM);
         $instantTotal = $paidOrders->sum('total');
         $roomChargeTotal = $postedOrders->sum('total');
-        $byType = $orders->groupBy('pos_type')->map(fn ($o) => $o->sum('total'));
-        $paymentMethodSummary = $orders->pluck('payments')->flatten()->groupBy('method')->map(fn ($p) => round($p->sum('amount'), 2));
+        $byType = $orders->groupBy('pos_type')->map(fn($o) => $o->sum('total'));
+        $paymentMethodSummary = $orders->pluck('payments')->flatten()->groupBy('method')->map(fn($p) => round($p->sum('amount'), 2));
         $outlets = $this->outletService->all(true);
         return view('pos.reports', compact('orders', 'from', 'to', 'outletId', 'outlets', 'instantTotal', 'roomChargeTotal', 'byType', 'paymentMethodSummary'));
     }
 
     public function outlet(Request $request): View
     {
-        $id = (int) $request->route('id');
+        $id = (int)$request->route('id');
         $outlet = $this->outletService->find($id);
         if (!$outlet) {
             abort(404);
@@ -84,11 +86,17 @@ class PosController extends Controller
 
     public function storeTable(Request $request): RedirectResponse
     {
-        $outletId = (int) $request->route('id');
-        $request->validate(['name' => ['required', 'string', 'max:50']]);
+        $outletId = (int)$request->route('id');
+        $request->validate([
+            'name' => ['required', 'string', 'max:50'],
+            'capacity' => ['nullable', 'integer', 'min:1'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+        ]);
         $this->tableService->create([
             'outlet_id' => $outletId,
             'name' => $request->input('name'),
+            'capacity' => $request->input('capacity'),
+            'sort_order' => $request->input('sort_order', 0),
         ]);
         return redirect()->route('pos.outlet', $outletId)->with('success', __('Table added.'));
     }
@@ -99,22 +107,23 @@ class PosController extends Controller
         try {
             $this->tableService->delete($table);
             return redirect()->route('pos.outlet', $outletId)->with('success', __('Table deleted.'));
-        } catch (ValidationException $e) {
+        }
+        catch (ValidationException $e) {
             return redirect()->route('pos.outlet', $outletId)->withErrors($e->errors());
         }
     }
 
     public function createOrder(Request $request): RedirectResponse
     {
-        $outletId = (int) $request->input('outlet_id');
-        $tableId = $request->input('pos_table_id') ? (int) $request->input('pos_table_id') : null;
-        $order = $this->orderService->create($outletId, $tableId, (int) auth()->id());
+        $outletId = (int)$request->input('outlet_id');
+        $tableId = $request->input('pos_table_id') ? (int)$request->input('pos_table_id') : null;
+        $order = $this->orderService->create($outletId, $tableId, (int)auth()->id());
         return redirect()->route('pos.order', $order->id)->with('success', __('Order created.'));
     }
 
     public function order(Request $request): View
     {
-        $order = $this->orderService->find((int) $request->route('order'));
+        $order = $this->orderService->find((int)$request->route('order'));
         if (!$order) {
             abort(404);
         }
@@ -131,30 +140,30 @@ class PosController extends Controller
 
     public function addItem(Request $request): RedirectResponse
     {
-        $orderId = (int) $request->route('order');
+        $orderId = (int)$request->route('order');
         $order = $this->orderService->find($orderId);
         if (!$order) {
             abort(404);
         }
         $request->validate(['menu_item_id' => 'required|exists:menu_items,id', 'quantity' => 'nullable|integer|min:1']);
-        $this->orderService->addItem($order, (int) $request->menu_item_id, (int) ($request->quantity ?? 1), $request->notes);
+        $this->orderService->addItem($order, (int)$request->menu_item_id, (int)($request->quantity ?? 1), $request->notes);
         return redirect()->route('pos.order', $order->id)->with('success', __('Item added.'));
     }
 
     public function removeItem(Request $request): RedirectResponse
     {
-        $orderId = (int) $request->route('order');
+        $orderId = (int)$request->route('order');
         $order = $this->orderService->find($orderId);
         if (!$order) {
             abort(404);
         }
-        $this->orderService->removeItem($order, (int) $request->route('item'));
+        $this->orderService->removeItem($order, (int)$request->route('item'));
         return redirect()->route('pos.order', $order->id)->with('success', __('Item removed.'));
     }
 
     public function sendToKitchen(Request $request): RedirectResponse
     {
-        $order = $this->orderService->find((int) $request->route('order'));
+        $order = $this->orderService->find((int)$request->route('order'));
         if (!$order) {
             abort(404);
         }
@@ -164,7 +173,7 @@ class PosController extends Controller
 
     public function completeOrder(Request $request): RedirectResponse
     {
-        $order = $this->orderService->find((int) $request->route('order'));
+        $order = $this->orderService->find((int)$request->route('order'));
         if (!$order) {
             abort(404);
         }
@@ -174,7 +183,7 @@ class PosController extends Controller
 
     public function payOrder(Request $request): RedirectResponse
     {
-        $order = $this->orderService->find((int) $request->route('order'));
+        $order = $this->orderService->find((int)$request->route('order'));
         if (!$order) {
             abort(404);
         }
@@ -185,18 +194,19 @@ class PosController extends Controller
         try {
             $this->orderService->payOrder($order, $payments);
             return redirect()->route('pos.outlet', $order->outlet_id)->with('success', __('Payment recorded.'));
-        } catch (ValidationException $e) {
+        }
+        catch (ValidationException $e) {
             return redirect()->route('pos.order', $order->id)->withErrors($e->errors())->withInput();
         }
     }
 
     public function postOrderToRoom(Request $request): RedirectResponse
     {
-        $order = $this->orderService->find((int) $request->route('order'));
+        $order = $this->orderService->find((int)$request->route('order'));
         if (!$order) {
             abort(404);
         }
-        $bookingId = $request->input('booking_id') ? (int) $request->input('booking_id') : null;
+        $bookingId = $request->input('booking_id') ? (int)$request->input('booking_id') : null;
         if ($bookingId && !$order->booking_id) {
             $booking = Booking::find($bookingId);
             if ($booking) {
@@ -206,21 +216,23 @@ class PosController extends Controller
         try {
             $this->orderService->postOrderToRoom($order);
             return redirect()->route('pos.outlet', $order->outlet_id)->with('success', __('Charge posted to room. Will appear on guest invoice at checkout.'));
-        } catch (ValidationException $e) {
+        }
+        catch (ValidationException $e) {
             return redirect()->route('pos.order', $order->id)->withErrors($e->errors())->withInput();
         }
     }
 
     public function voidOrder(Request $request): RedirectResponse
     {
-        $order = $this->orderService->find((int) $request->route('order'));
+        $order = $this->orderService->find((int)$request->route('order'));
         if (!$order) {
             abort(404);
         }
         try {
             $this->orderService->voidOrder($order);
             return redirect()->route('pos.outlet', $order->outlet_id)->with('success', __('Order voided.'));
-        } catch (ValidationException $e) {
+        }
+        catch (ValidationException $e) {
             return redirect()->route('pos.order', $order->id)->withErrors($e->errors());
         }
     }
