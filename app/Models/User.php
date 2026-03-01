@@ -19,6 +19,35 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, HasRoles, Notifiable;
 
+    protected static function booted(): void
+    {
+        static::updated(function (User $user) {
+            // Sync email and name changes to linked profiles (Employees and Guests)
+            if ($user->wasChanged(['name', 'email'])) {
+                if ($user->employee) {
+                    $empData = ['email' => $user->email];
+                    if ($user->wasChanged('name')) {
+                        $empData['name'] = $user->name;
+                        $parts = explode(' ', trim((string)$user->name), 2);
+                        $empData['first_name'] = $parts[0] ?? '';
+                        $empData['last_name'] = $parts[1] ?? '';
+                    }
+                    $user->employee->update($empData);
+                }
+
+                if ($user->guest) {
+                    $guestData = ['email' => $user->email];
+                    if ($user->wasChanged('name')) {
+                        $parts = explode(' ', trim((string)$user->name), 2);
+                        $guestData['first_name'] = $parts[0] ?? '';
+                        $guestData['last_name'] = $parts[1] ?? '';
+                    }
+                    $user->guest->update($guestData);
+                }
+            }
+        });
+    }
+
     /**
      * The attributes that are mass assignable.
      *
@@ -70,7 +99,7 @@ class User extends Authenticatable
     /** Profile picture URL; default avatar when not set. */
     public function getProfilePicUrlAttribute(): string
     {
-        if (! empty($this->profile_pic)) {
+        if (!empty($this->profile_pic)) {
             return asset('storage/' . $this->profile_pic);
         }
         return asset('images/default-avatar.svg');
@@ -79,7 +108,7 @@ class User extends Authenticatable
     /** @return HasMany<Booking, $this> */
     public function createdBookings(): HasMany
     {
-        return $this->hasMany(Booking::class, 'created_by');
+        return $this->hasMany(Booking::class , 'created_by');
     }
 
     /** Guest profile linked to this user (portal use). */
