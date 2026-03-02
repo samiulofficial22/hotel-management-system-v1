@@ -17,13 +17,13 @@ return [
     'Guests' => 'অতিথি',
     'Bookings' => 'বুকিং',
     'Booking Calendar' => 'বুকিং ক্যালেন্ডার',
-    'F&B' => 'এফ অ্যান্ড বি',
-    'POS' => 'পিওএস',
+    'F&B' => 'খাদ্য ও পানীয়',
+    'POS' => 'বিক্রয় কেন্দ্র',
     'Outlets' => 'আউটলেট',
     'Kitchen' => 'রান্নাঘর',
-    'Banquet' => 'ব্যানকুয়েট',
-    'Banquet Venues' => 'ব্যানকুয়েট ভেন্যু',
-    'Banquet Bookings' => 'ব্যানকুয়েট বুকিং',
+    'Banquet' => 'ভোজসভা',
+    'Banquet Venues' => 'ভোজসভা ভেন্যু',
+    'Banquet Bookings' => 'ভোজসভা বুকিং',
     'Housekeeping' => 'হাউজকিপিং',
     'Minibar' => 'মিনিবার',
     'Store' => 'স্টোর',
@@ -180,4 +180,3 @@ return [
     'Check-out' => 'চেক-আউট',
     'Notes' => 'নোট',
 ];
-
