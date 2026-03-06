@@ -172,8 +172,13 @@
             @endcan
             @can('housekeeping.view')
             <span class="px-3 py-1 small text-white-50 text-uppercase">{{ __('messages.Operations') }}</span>
-            <a class="nav-link {{ request()->routeIs('housekeeping.*') ? 'active' : '' }}" href="{{ route('housekeeping.index') }}">
+            <a class="nav-link {{ request()->routeIs('housekeeping.index') ? 'active' : '' }}" href="{{ route('housekeeping.index') }}">
                 <i class="bi bi-bucket"></i> {{ __('messages.Housekeeping') }}
+            </a>
+            @endcan
+            @can('housekeeping.assign_others')
+            <a class="nav-link {{ request()->routeIs('housekeeping.all-work') ? 'active' : '' }}" href="{{ route('housekeeping.all-work') }}">
+                <i class="bi bi-table"></i> {{ __('messages.All Housekeeping Work') }}
             </a>
             @endcan
             <!-- @can('minibar.manage')

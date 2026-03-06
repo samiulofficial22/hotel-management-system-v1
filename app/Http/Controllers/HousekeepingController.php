@@ -18,6 +18,37 @@ class HousekeepingController extends Controller
 {
     public function __construct(protected HousekeepingService $service) {}
 
+    public function allWork(Request $request): View
+    {
+        if (! auth()->user()?->can('housekeeping.manage')) {
+            abort(403);
+        }
+        $query = HousekeepingAssignment::with(['room.roomType', 'assignedTo'])
+            ->orderByDesc('date')
+            ->orderByDesc('id');
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('user_id')) {
+            $query->where('assigned_to', $request->user_id);
+        }
+        if ($request->filled('date_from')) {
+            $query->where('date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->where('date', '<=', $request->date_to);
+        }
+        $assignments = $query->paginate(20)->withQueryString();
+        $housekeepers = User::role('Housekeeper')->orderBy('name')->get(['id', 'name']);
+        $stats = [
+            'total'       => HousekeepingAssignment::count(),
+            'pending'     => HousekeepingAssignment::where('status', HousekeepingAssignment::STATUS_PENDING)->count(),
+            'in_progress' => HousekeepingAssignment::where('status', HousekeepingAssignment::STATUS_IN_PROGRESS)->count(),
+            'completed'   => HousekeepingAssignment::where('status', HousekeepingAssignment::STATUS_COMPLETED)->count(),
+        ];
+        return view('housekeeping.all-work', compact('assignments', 'housekeepers', 'stats'));
+    }
+
     public function index(Request $request): View
     {
         $date = $request->has('date') ? Carbon::parse($request->date) : today();
@@ -39,13 +70,11 @@ class HousekeepingController extends Controller
             $rules['assigned_to'] = ['required', 'exists:users,id', 'in:' . $housekeeperIds];
         }
         $validated = $request->validate($rules);
-
         if (! $canAssignOthers) {
             if ($request->filled('assigned_to') && (int) $request->assigned_to !== (int) auth()->id()) {
                 abort(403, __('You can only assign rooms to yourself.'));
             }
         }
-
         $assignedTo = $canAssignOthers ? (int) $validated['assigned_to'] : (int) auth()->id();
         $assignment = $this->service->assignRoom(
             (int) $request->room_id,
@@ -82,16 +111,16 @@ class HousekeepingController extends Controller
                     ->where('date', $request->input('date'))
                     ->ignore($assignment->id),
             ],
-            'date' => 'required|date',
+            'date'        => 'required|date',
             'assigned_to' => ['required', 'exists:users,id', 'in:' . $housekeeperIds],
-            'status' => ['required', 'in:pending,in_progress,completed'],
+            'status'      => ['required', 'in:pending,in_progress,completed'],
         ]);
         $newStatus = $validated['status'];
         $update = [
-            'room_id' => (int) $validated['room_id'],
-            'date' => $validated['date'],
+            'room_id'     => (int) $validated['room_id'],
+            'date'        => $validated['date'],
             'assigned_to' => (int) $validated['assigned_to'],
-            'status' => $newStatus,
+            'status'      => $newStatus,
         ];
         if ($newStatus === HousekeepingAssignment::STATUS_COMPLETED && ! $assignment->completed_at) {
             $update['completed_at'] = now();

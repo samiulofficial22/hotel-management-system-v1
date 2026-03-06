@@ -26,6 +26,7 @@ return [
     'Banquet Bookings' => 'ভোজসভা বুকিং',
     'Housekeeping' => 'হাউজকিপিং',
     'Housekeeper' => 'হাউজকিপার',
+    'All Housekeeping Work' => 'সকল হাউজকিপিং কাজ',
     'Minibar' => 'মিনিবার',
     'Store' => 'স্টোর',
     'Maintenance' => 'মেরামত',

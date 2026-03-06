@@ -3,6 +3,11 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
     <h1 class="h3 mb-0">Housekeeping</h1>
+    @can('housekeeping.assign_others')
+    <a href="{{ route('housekeeping.all-work') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-table me-1"></i>{{ __('All Housekeeping Work') }}
+    </a>
+    @endcan
 </div>
 
 {{-- Date + Room filter --}}
