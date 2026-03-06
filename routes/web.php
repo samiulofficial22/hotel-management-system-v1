@@ -246,6 +246,8 @@ Route::middleware(['auth'])->group(function (): void {
                     Route::post('payroll', [PayrollController::class , 'store'])->name('payroll.store')->middleware('permission:payroll.generate');
                     Route::get('payroll/{payroll_run}', [PayrollController::class , 'show'])->name('payroll.show')->middleware('permission:payroll.view');
                     Route::post('payroll/{payroll_run}/process', [PayrollController::class , 'process'])->name('payroll.process')->middleware('permission:payroll.approve');
+                    Route::post('payroll/{payroll_run}/revert', [PayrollController::class , 'revert'])->name('payroll.revert')->middleware('permission:payroll.approve');
+                    Route::delete('payroll/{payroll_run}', [PayrollController::class , 'destroy'])->name('payroll.destroy')->middleware('permission:payroll.manage');
                     Route::post('payroll/{payroll_run}/pay', [PayrollController::class , 'pay'])->name('payroll.pay')->middleware('permission:payroll.pay');
                     Route::get('payroll/item/{payroll_item}/slip', [PayrollController::class , 'salarySlipPdf'])->name('payroll.slip')->middleware('permission:payroll.view');
                     Route::put('payroll/item/{payroll_item}', [PayrollController::class , 'updateItem'])->name('payroll.item.update')->middleware('permission:payroll.manage');

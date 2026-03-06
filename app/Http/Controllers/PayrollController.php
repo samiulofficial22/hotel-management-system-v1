@@ -57,6 +57,26 @@ class PayrollController extends Controller
         return redirect()->route('hr.payroll.show', $payroll_run)->with('success', __('Payroll approved.'));
     }
 
+    public function revert(PayrollRun $payroll_run): RedirectResponse
+    {
+        try {
+            $this->service->revert($payroll_run);
+            return redirect()->route('hr.payroll.show', $payroll_run)->with('success', __('Payroll reverted to draft for editing.'));
+        } catch (ValidationException $e) {
+            return redirect()->route('hr.payroll.show', $payroll_run)->withErrors($e->errors());
+        }
+    }
+
+    public function destroy(PayrollRun $payroll_run): RedirectResponse
+    {
+        try {
+            $this->service->delete($payroll_run);
+            return redirect()->route('hr.payroll.index')->with('success', __('Payroll run deleted.'));
+        } catch (ValidationException $e) {
+            return redirect()->route('hr.payroll.index')->withErrors($e->errors());
+        }
+    }
+
     public function pay(Request $request, PayrollRun $payroll_run): RedirectResponse
     {
         $request->validate(['payment_account_id' => 'required|exists:chart_of_accounts,id']);
@@ -82,11 +102,31 @@ class PayrollController extends Controller
         if ($run->isPaid()) {
             return redirect()->route('hr.payroll.show', $run)->withErrors(['payroll' => __('Paid payroll cannot be edited.')]);
         }
-        $request->validate(['allowances' => 'nullable|numeric|min:0', 'deductions' => 'nullable|numeric|min:0']);
+        $request->validate([
+            'base_salary'      => 'nullable|numeric|min:0',
+            'working_days'     => 'nullable|numeric|min:0',
+            'overtime_amount'  => 'nullable|numeric|min:0',
+            'allowances'       => 'nullable|numeric|min:0',
+            'deductions'       => 'nullable|numeric|min:0',
+        ]);
+
+        $base       = (float) ($request->base_salary ?? $payroll_item->base_salary);
+        $workDays   = $request->filled('working_days') ? (float) $request->working_days : $payroll_item->working_days;
+        $overtime   = (float) ($request->overtime_amount ?? 0);
         $allowances = (float) ($request->allowances ?? 0);
         $deductions = (float) ($request->deductions ?? 0);
-        $net = (float) $payroll_item->base_salary + (float) ($payroll_item->overtime_amount ?? 0) + $allowances - $deductions;
-        $payroll_item->update(['allowances' => $allowances, 'deductions' => $deductions, 'net_salary' => $net]);
-        return redirect()->route('hr.payroll.show', $run)->with('success', __('Updated.'));
+
+        $net = $base + $overtime + $allowances - $deductions;
+
+        $payroll_item->update([
+            'base_salary'     => $base,
+            'working_days'    => $workDays,
+            'overtime_amount' => $overtime,
+            'allowances'      => $allowances,
+            'deductions'      => $deductions,
+            'net_salary'      => $net,
+        ]);
+
+        return redirect()->route('hr.payroll.show', $run)->with('success', __('Payroll item updated successfully.'));
     }
 }

@@ -40,16 +40,38 @@ class PayrollRunService
                 'status' => PayrollRun::STATUS_DRAFT,
             ]);
             $employees = $this->employeeRepository->all(true);
+            
+            // Fetch attendances for the period to calculate working days and overtime
+            $attendances = \App\Models\Attendance::whereBetween('date', [$periodStart->toDateString(), $periodEnd->toDateString()])
+                ->get()
+                ->groupBy('employee_id');
+
             foreach ($employees as $emp) {
                 $base = (float) ($emp->salary ?? $emp->base_salary ?? 0);
+                
+                $empAttendances = $attendances->get($emp->id, collect());
+                
+                $workingDays = $empAttendances->sum(function($att) {
+                    return $att->status === \App\Models\Attendance::STATUS_HALF_DAY ? 0.5 : 
+                           ($att->status === \App\Models\Attendance::STATUS_PRESENT ? 1 : 0);
+                });
+                
+                // standard hotel monthly overtime rate = base / 30 days / 8 hours
+                $totalOvertimeHours = $empAttendances->sum('overtime_hours');
+                $hourlyRate = $base > 0 ? ($base / 30 / 8) : 0;
+                $overtimeAmount = (float) round($totalOvertimeHours * $hourlyRate, 2);
+
+                $netSalary = $base + $overtimeAmount;
+
                 PayrollItem::create([
-                    'payroll_run_id' => $run->id,
-                    'employee_id' => $emp->id,
-                    'base_salary' => $base,
-                    'overtime_amount' => 0,
-                    'allowances' => 0,
-                    'deductions' => 0,
-                    'net_salary' => $base,
+                    'payroll_run_id'  => $run->id,
+                    'employee_id'     => $emp->id,
+                    'base_salary'     => $base,
+                    'working_days'    => $workingDays,
+                    'overtime_amount' => $overtimeAmount,
+                    'allowances'      => 0,
+                    'deductions'      => 0,
+                    'net_salary'      => $netSalary,
                 ]);
             }
             return $run->fresh();
@@ -99,6 +121,34 @@ class PayrollRunService
                 'paid_by' => $userId,
             ]);
             return $run->fresh();
+        });
+    }
+
+
+    public function revert(PayrollRun $run): PayrollRun
+    {
+        if ($run->status === PayrollRun::STATUS_PAID) {
+            throw new \Illuminate\Validation\ValidationException(null, __('Paid payroll cannot be reverted.'));
+        }
+
+        $run->update([
+            'status' => PayrollRun::STATUS_DRAFT,
+            'processed_at' => null,
+            'processed_by' => null,
+        ]);
+
+        return $run->fresh();
+    }
+
+    public function delete(PayrollRun $run): void
+    {
+        if ($run->status === PayrollRun::STATUS_PAID) {
+            throw new \Illuminate\Validation\ValidationException(null, __('Paid payroll cannot be deleted.'));
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($run) {
+            $run->items()->delete();
+            $run->delete();
         });
     }
 }

@@ -11,14 +11,16 @@ use Illuminate\View\View;
 
 class AttendanceController extends Controller
 {
-    public function __construct(
-        protected AttendanceService $service,
-        protected EmployeeService $employeeService
-    ) {}
+    public function __construct(protected
+        AttendanceService $service, protected
+        EmployeeService $employeeService
+        )
+    {
+    }
 
     public function index(Request $request): View
     {
-        $date = $request->has('date') ? Carbon::parse($request->date) : today();
+        $date = $request->has('date') ?Carbon::parse($request->date) : today();
         $attendances = $this->service->forDate($date);
         $employees = $this->employeeService->all(true);
         $attendancesByEmployee = $attendances->keyBy('employee_id');
@@ -32,16 +34,18 @@ class AttendanceController extends Controller
             'date' => 'required|date',
             'check_in' => 'nullable|string|max:10',
             'check_out' => 'nullable|string|max:10',
+            'overtime_hours' => 'nullable|numeric|min:0',
             'status' => 'nullable|in:present,absent,half_day,leave',
             'notes' => 'nullable|string|max:500',
         ]);
         $this->service->markAttendance(
-            (int) $request->employee_id,
+            (int)$request->employee_id,
             Carbon::parse($request->date),
             $request->check_in ?: null,
             $request->check_out ?: null,
             $request->status ?? 'present',
-            $request->notes
+            $request->notes,
+            $request->overtime_hours
         );
         return redirect()->route('hr.attendance.index', ['date' => $request->date])->with('success', __('Attendance updated.'));
     }

@@ -2,7 +2,7 @@
 @section('title', __('Attendance'))
 @section('content')
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-    <h1 class="h3 mb-0">Office Staff Attendance</h1>
+    <h1 class="h3 mb-0">Employee Attendance</h1>
     <a href="{{ route('hr.employees.index') }}" class="btn btn-outline-secondary btn-sm">Employees</a>
 </div>
 
@@ -108,6 +108,7 @@
                             <th>Employee</th>
                             <th>Check in</th>
                             <th>Check out</th>
+                            <th>Overtime (Hrs)</th>
                             <th>Status</th>
                             @can('hr.manage')<th class="text-end pe-3">Action</th>@endcan
                         </tr>
@@ -119,9 +120,7 @@
                                 <td class="ps-3">{{ $index + 1 }}</td>
                                 <td>
                                     <span class="fw-medium">{{ $e->full_name }}</span>
-                                    @if($e->designation ?? $e->department)
-                                        <br><small class="text-muted">{{ $e->designation ?? $e->department }}</small>
-                                    @endif
+                                    <div class="small text-muted">{{ $e->departmentRelation->name ?? $e->department ?? 'N/A' }}</div>
                                 </td>
                                 @can('hr.manage')
                                 <form method="POST" action="{{ route('hr.attendance.mark') }}" style="display: contents;">
@@ -133,6 +132,9 @@
                                     </td>
                                     <td>
                                         <input type="time" name="check_out" class="form-control form-control-sm" value="{{ $att && $att->check_out ? \Carbon\Carbon::parse($att->check_out)->format('H:i') : '' }}" style="width:100px">
+                                    </td>
+                                    <td>
+                                        <input type="number" step="0.5" min="0" name="overtime_hours" class="form-control form-control-sm" value="{{ $att ? ($att->overtime_hours + 0) : '' }}" style="width:80px" placeholder="0">
                                     </td>
                                     <td>
                                         <select name="status" class="form-select form-select-sm" style="width:110px">
@@ -149,6 +151,7 @@
                                 @else
                                 <td>{{ $att && $att->check_in ? \Carbon\Carbon::parse($att->check_in)->format('h:i A') : '–' }}</td>
                                 <td>{{ $att && $att->check_out ? \Carbon\Carbon::parse($att->check_out)->format('h:i A') : '–' }}</td>
+                                <td>{{ $att && $att->overtime_hours ? ($att->overtime_hours + 0) : '–' }}</td>
                                 <td>
                                     @if($att)
                                         @if($att->status === 'present')<span class="badge bg-success">Present</span>

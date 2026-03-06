@@ -9,7 +9,9 @@ use Illuminate\Database\Eloquent\Collection;
 
 class AttendanceService
 {
-    public function __construct(protected AttendanceRepository $repository) {}
+    public function __construct(protected AttendanceRepository $repository)
+    {
+    }
 
     public function forEmployeeAndMonth(int $employeeId, Carbon $month): Collection
     {
@@ -26,13 +28,14 @@ class AttendanceService
         return $this->repository->find($id);
     }
 
-    public function markAttendance(int $employeeId, Carbon $date, ?string $checkIn = null, ?string $checkOut = null, string $status = 'present', ?string $notes = null): Attendance
+    public function markAttendance(int $employeeId, Carbon $date, ?string $checkIn = null, ?string $checkOut = null, string $status = 'present', ?string $notes = null, ?float $overtimeHours = null): Attendance
     {
         $a = $this->repository->firstOrCreateForEmployeeDate($employeeId, $date);
         $data = [
             'check_in' => $checkIn ?: null,
             'check_out' => $checkOut ?: null,
             'status' => $status,
+            'overtime_hours' => $overtimeHours,
         ];
         if ($notes !== null && $notes !== '') {
             $data['notes'] = $notes;
