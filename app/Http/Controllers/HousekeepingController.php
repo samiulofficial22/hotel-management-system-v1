@@ -26,7 +26,7 @@ class HousekeepingController extends Controller
         $userId = $canAssignOthers ? null : auth()->id();
         $assignments = $this->service->assignmentsForDate($date, $userId, $roomId);
         $rooms = $this->service->allRooms();
-        $users = User::role('Housekeeping')->orderBy('name')->get(['id', 'name']);
+        $users = User::role('Housekeeper')->orderBy('name')->get(['id', 'name']);
         return view('housekeeping.index', compact('assignments', 'rooms', 'date', 'users', 'roomId'));
     }
 
@@ -35,7 +35,7 @@ class HousekeepingController extends Controller
         $rules = ['room_id' => 'required|exists:rooms,id', 'date' => 'required|date'];
         $canAssignOthers = auth()->user()?->can('housekeeping.assign_others');
         if ($canAssignOthers) {
-            $housekeeperIds = User::role('Housekeeping')->pluck('id')->implode(',');
+            $housekeeperIds = User::role('Housekeeper')->pluck('id')->implode(',');
             $rules['assigned_to'] = ['required', 'exists:users,id', 'in:' . $housekeeperIds];
         }
         $validated = $request->validate($rules);
@@ -64,7 +64,7 @@ class HousekeepingController extends Controller
         }
         $assignment->load(['room.roomType', 'assignedTo']);
         $rooms = $this->service->allRooms();
-        $users = User::role('Housekeeping')->orderBy('name')->get(['id', 'name']);
+        $users = User::role('Housekeeper')->orderBy('name')->get(['id', 'name']);
         return view('housekeeping.edit', compact('assignment', 'rooms', 'users'));
     }
 
@@ -73,7 +73,7 @@ class HousekeepingController extends Controller
         if (! auth()->user()?->can('housekeeping.assign_others')) {
             abort(403, __('Only admin or manager can update assignments.'));
         }
-        $housekeeperIds = User::role('Housekeeping')->pluck('id')->implode(',');
+        $housekeeperIds = User::role('Housekeeper')->pluck('id')->implode(',');
         $validated = $request->validate([
             'room_id' => [
                 'required',
@@ -129,7 +129,7 @@ class HousekeepingController extends Controller
             abort(403, __('You cannot reassign rooms. Only admin or manager can.'));
         }
         $request->validate([
-            'assigned_to' => ['required', 'exists:users,id', 'in:' . User::role('Housekeeping')->pluck('id')->implode(',')],
+            'assigned_to' => ['required', 'exists:users,id', 'in:' . User::role('Housekeeper')->pluck('id')->implode(',')],
         ]);
         $this->service->reassign($assignment, (int) $request->assigned_to);
         $assignment->load(['room', 'assignedTo']);

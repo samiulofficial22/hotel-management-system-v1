@@ -25,6 +25,7 @@ return [
     'Banquet Venues' => 'Banquet Venues',
     'Banquet Bookings' => 'Banquet Bookings',
     'Housekeeping' => 'Housekeeping',
+    'Housekeeper' => 'Housekeeper',
     'Minibar' => 'Minibar',
     'Store' => 'Store',
     'Maintenance' => 'Maintenance',

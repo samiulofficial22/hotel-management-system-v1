@@ -14,38 +14,38 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         $admin = User::firstOrCreate(
-            ['email' => 'admin@hotel.test'],
-            ['name' => 'Admin User', 'password' => 'password', 'language_preference' => 'en']
+        ['email' => 'admin@hotel.test'],
+        ['name' => 'Admin User', 'password' => 'password', 'language_preference' => 'en']
         );
         $admin->assignRole('Admin');
 
         $manager = User::firstOrCreate(
-            ['email' => 'manager@hotel.test'],
-            ['name' => 'Manager User', 'password' => 'password', 'language_preference' => 'en']
+        ['email' => 'manager@hotel.test'],
+        ['name' => 'Manager User', 'password' => 'password', 'language_preference' => 'en']
         );
         if (!$manager->hasRole('Manager')) {
             $manager->assignRole('Manager');
         }
 
         $receptionist = User::firstOrCreate(
-            ['email' => 'reception@hotel.test'],
-            ['name' => 'Receptionist User', 'password' => 'password', 'language_preference' => 'en']
+        ['email' => 'reception@hotel.test'],
+        ['name' => 'Receptionist User', 'password' => 'password', 'language_preference' => 'en']
         );
         if (!$receptionist->hasRole('Receptionist')) {
             $receptionist->assignRole('Receptionist');
         }
 
         $housekeeping = User::firstOrCreate(
-            ['email' => 'housekeeping@hotel.test'],
-            ['name' => 'Housekeeping User', 'password' => 'password', 'language_preference' => 'en']
+        ['email' => 'housekeeping@hotel.test'],
+        ['name' => 'Housekeeping User', 'password' => 'password', 'language_preference' => 'en']
         );
-        if (!$housekeeping->hasRole('Housekeeping')) {
-            $housekeeping->assignRole('Housekeeping');
+        if (!$housekeeping->hasRole('Housekeeper')) {
+            $housekeeping->assignRole('Housekeeper');
         }
 
         $accountant = User::firstOrCreate(
-            ['email' => 'accountant@hotel.test'],
-            ['name' => 'Accountant User', 'password' => 'password', 'language_preference' => 'en']
+        ['email' => 'accountant@hotel.test'],
+        ['name' => 'Accountant User', 'password' => 'password', 'language_preference' => 'en']
         );
         if (!$accountant->hasRole('Accountant')) {
             $accountant->assignRole('Accountant');
@@ -53,8 +53,8 @@ class UserSeeder extends Seeder
 
         // Extra staff so every user has plenty of colleagues and data variety
         User::factory(5)->create()->each(function (User $user): void {
-            if (!$user->hasAnyRole(['Admin', 'Manager', 'Receptionist', 'Housekeeping', 'Accountant'])) {
-                $user->assignRole(fake()->randomElement(['Receptionist', 'Receptionist', 'Housekeeping']));
+            if (!$user->hasAnyRole(['Admin', 'Manager', 'Receptionist', 'Housekeeper', 'Accountant'])) {
+                $user->assignRole(fake()->randomElement(['Receptionist', 'Receptionist', 'Housekeeper']));
             }
         });
     }

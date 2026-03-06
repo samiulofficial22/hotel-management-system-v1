@@ -25,6 +25,7 @@ return [
     'Banquet Venues' => 'ভোজসভা ভেন্যু',
     'Banquet Bookings' => 'ভোজসভা বুকিং',
     'Housekeeping' => 'হাউজকিপিং',
+    'Housekeeper' => 'হাউজকিপার',
     'Minibar' => 'মিনিবার',
     'Store' => 'স্টোর',
     'Maintenance' => 'মেরামত',

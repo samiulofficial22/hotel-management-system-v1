@@ -35,7 +35,7 @@ class UserController extends Controller
             });
         }
         $officeStaffList = $staffQuery->orderBy('name')->get();
-        $roleOrder = ['Admin', 'Manager', 'Receptionist', 'Housekeeping', 'Accountant', 'Other'];
+        $roleOrder = ['Admin', 'Manager', 'Receptionist', 'Housekeeper', 'Accountant', 'Other'];
         $staffByRole = $officeStaffList->groupBy(function ($user) use ($roleOrder) {
             $roleNames = $user->roles->pluck('name');
             foreach ($roleOrder as $r) {

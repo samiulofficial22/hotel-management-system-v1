@@ -31,7 +31,7 @@ class MaintenanceRequestController extends Controller
     public function create(): View
     {
         $rooms = $this->roomRepository->all(false);
-        $users = User::role('Housekeeping')->orderBy('name')->get(['id', 'name']);
+        $users = User::role('Housekeeper')->orderBy('name')->get(['id', 'name']);
         $departments = $this->departmentService->all(true);
         return view('maintenance.form', ['rooms' => $rooms, 'users' => $users, 'departments' => $departments, 'request' => null]);
     }
@@ -145,7 +145,7 @@ class MaintenanceRequestController extends Controller
     public function edit(MaintenanceRequest $maintenance_request): View
     {
         $rooms = $this->roomRepository->all(false);
-        $users = User::role('Housekeeping')->orderBy('name')->get(['id', 'name']);
+        $users = User::role('Housekeeper')->orderBy('name')->get(['id', 'name']);
         if ($maintenance_request->assigned_to && ! $users->contains('id', $maintenance_request->assigned_to)) {
             $current = User::find($maintenance_request->assigned_to, ['id', 'name']);
             if ($current) {

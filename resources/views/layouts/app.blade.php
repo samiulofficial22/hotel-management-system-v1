@@ -110,7 +110,7 @@
                     <i class="bi bi-person"></i> {{ __('My profile') }}
                 </a>
             @else
-            @role('Housekeeping')
+            @role('Housekeeper')
                 <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
                     <i class="bi bi-speedometer2"></i> {{ __('messages.Dashboard') }}
                 </a>

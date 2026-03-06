@@ -26,7 +26,7 @@ class DashboardController extends Controller
             return redirect()->route('guest.dashboard');
         }
 
-        if (Auth::user()->hasRole('Housekeeping')) {
+        if (Auth::user()->hasRole('Housekeeper')) {
             $today = Carbon::today();
             $todayAssignments = $this->housekeepingRepo->forDate($today, (int)Auth::id());
 
