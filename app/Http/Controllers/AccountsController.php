@@ -132,4 +132,14 @@ class AccountsController extends Controller
         $totalCost = $runs->sum(fn ($r) => $r->items->sum('net_salary'));
         return view('accounts.report-payroll-cost', compact('from', 'to', 'runs', 'totalCost'));
     }
+
+    public function destroy(ChartOfAccount $account): RedirectResponse
+    {
+        try {
+            $this->accountService->delete($account);
+            return redirect()->route('accounts.index')->with('success', __('Account deleted.'));
+        } catch (ValidationException $e) {
+            return redirect()->route('accounts.index')->withErrors($e->errors());
+        }
+    }
 }

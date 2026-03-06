@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Collection;
 
 class ChartOfAccountService
 {
-    public function __construct(protected ChartOfAccountRepository $repository) {}
+    public function __construct(protected ChartOfAccountRepository $repository)
+    {
+    }
 
     public function rules(?int $accountId = null): array
     {
@@ -48,5 +50,13 @@ class ChartOfAccountService
     public function update(ChartOfAccount $account, array $data): ChartOfAccount
     {
         return $this->repository->update($account, $data);
+    }
+
+    public function delete(ChartOfAccount $account): void
+    {
+        if ($account->ledgerEntries()->exists()) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['account' => __('Cannot delete account with existing ledger entries.')]);
+        }
+        $this->repository->delete($account);
     }
 }

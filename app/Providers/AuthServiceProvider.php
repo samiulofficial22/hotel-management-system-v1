@@ -21,6 +21,8 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        \Illuminate\Support\Facades\Gate::before(function ($user, $capability) {
+            return $user->hasRole('Super Admin') ? true : null;
+        });
     }
 }

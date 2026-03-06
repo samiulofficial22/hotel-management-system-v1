@@ -17,10 +17,15 @@ class RoleController extends Controller
 
     public function index(): View
     {
-        $roles = Role::where('guard_name', $this->guardName())
+        $roleQuery = Role::where('guard_name', $this->guardName())
             ->withCount('users', 'permissions')
-            ->orderBy('name')
-            ->get();
+            ->orderBy('name');
+        
+        if (!auth()->user()?->hasRole('Super Admin')) {
+            $roleQuery->where('name', '!=', 'Super Admin');
+        }
+
+        $roles = $roleQuery->get();
         return view('roles.index', compact('roles'));
     }
 
@@ -53,6 +58,10 @@ class RoleController extends Controller
 
     public function edit(Role $role): View
     {
+        if ($role->name === 'Super Admin' && !auth()->user()?->hasRole('Super Admin')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         if ($role->guard_name !== $this->guardName()) {
             abort(404);
         }
@@ -63,6 +72,10 @@ class RoleController extends Controller
 
     public function update(Request $request, Role $role): RedirectResponse
     {
+        if ($role->name === 'Super Admin' && !auth()->user()?->hasRole('Super Admin')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         if ($role->guard_name !== $this->guardName()) {
             abort(404);
         }
@@ -83,6 +96,10 @@ class RoleController extends Controller
 
     public function destroy(Role $role): RedirectResponse
     {
+        if ($role->name === 'Super Admin' && !auth()->user()?->hasRole('Super Admin')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         if ($role->guard_name !== $this->guardName()) {
             abort(404);
         }

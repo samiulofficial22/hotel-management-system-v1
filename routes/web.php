@@ -233,6 +233,7 @@ Route::middleware(['auth'])->group(function (): void {
             Route::post('/accounts', [AccountsController::class , 'store'])->name('accounts.store')->middleware('permission:accounts.manage');
             Route::get('/accounts/{account}/edit', [AccountsController::class , 'edit'])->name('accounts.edit')->middleware('permission:accounts.manage');
             Route::put('/accounts/{account}', [AccountsController::class , 'update'])->name('accounts.update')->middleware('permission:accounts.manage');
+            Route::delete('/accounts/{account}', [AccountsController::class , 'destroy'])->name('accounts.destroy')->middleware('permission:accounts.manage');
         }
         );
         Route::middleware('permission:hr.view')->group(function (): void {

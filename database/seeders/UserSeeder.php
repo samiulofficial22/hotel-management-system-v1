@@ -13,6 +13,12 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+        $superAdmin = User::firstOrCreate(
+        ['email' => 'superadmin@hotel.test'],
+        ['name' => 'Super Admin', 'password' => 'password', 'language_preference' => 'en']
+        );
+        $superAdmin->assignRole('Super Admin');
+
         $admin = User::firstOrCreate(
         ['email' => 'admin@hotel.test'],
         ['name' => 'Admin User', 'password' => 'password', 'language_preference' => 'en']

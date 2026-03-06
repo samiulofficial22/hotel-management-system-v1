@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Collection;
 
 class ChartOfAccountRepository
 {
-    public function __construct(protected ChartOfAccount $model) {}
+    public function __construct(protected ChartOfAccount $model)
+    {
+    }
 
     public function all(bool $activeOnly = true): Collection
     {
@@ -32,5 +34,10 @@ class ChartOfAccountRepository
     {
         $account->update($data);
         return $account->fresh();
+    }
+
+    public function delete(ChartOfAccount $account): bool
+    {
+        return (bool)$account->delete();
     }
 }

@@ -19,7 +19,12 @@ class UserController extends Controller
         $likeStaff = $searchStaff ? '%' . $searchStaff . '%' : null;
         $likeGuests = $searchGuests ? '%' . $searchGuests . '%' : null;
 
+        $isSuperAdmin = auth()->user()?->hasRole('Super Admin');
+
         $guestsQuery = User::role('Guest')->with(['roles', 'guest'])->orderByDesc('created_at');
+        if (!$isSuperAdmin) {
+            $guestsQuery->whereDoesntHave('roles', fn ($q) => $q->where('name', 'Super Admin'));
+        }
         if ($likeGuests) {
             $guestsQuery->where(function ($q) use ($likeGuests) {
                 $q->where('name', 'like', $likeGuests)->orWhere('email', 'like', $likeGuests);
@@ -29,6 +34,9 @@ class UserController extends Controller
 
         $staffQuery = User::whereDoesntHave('roles', fn ($q) => $q->where('name', 'Guest'))
             ->with('roles');
+        if (!$isSuperAdmin) {
+            $staffQuery->whereDoesntHave('roles', fn ($q) => $q->where('name', 'Super Admin'));
+        }
         if ($likeStaff) {
             $staffQuery->where(function ($q) use ($likeStaff) {
                 $q->where('name', 'like', $likeStaff)->orWhere('email', 'like', $likeStaff);
@@ -73,7 +81,11 @@ class UserController extends Controller
 
     public function create(): View
     {
-        $roles = Role::orderBy('name')->pluck('name', 'id');
+        $roleQuery = Role::orderBy('name');
+        if (!auth()->user()?->hasRole('Super Admin')) {
+            $roleQuery->where('name', '!=', 'Super Admin');
+        }
+        $roles = $roleQuery->pluck('name', 'id');
         $canAssignRole = auth()->user()?->can('roles.assign');
         return view('users.create', compact('roles', 'canAssignRole'));
     }
@@ -95,7 +107,11 @@ class UserController extends Controller
         ]);
 
         if (auth()->user()?->can('roles.assign') && ! empty($data['roles'] ?? [])) {
-            $user->syncRoles(Role::whereIn('id', $data['roles'])->pluck('name')->all());
+            $roleQuery = Role::whereIn('id', $data['roles']);
+            if (!auth()->user()?->hasRole('Super Admin')) {
+                $roleQuery->where('name', '!=', 'Super Admin');
+            }
+            $user->syncRoles($roleQuery->pluck('name')->all());
         }
 
         return redirect()->route('users.index')->with('success', __('User created.'));
@@ -103,7 +119,15 @@ class UserController extends Controller
 
     public function edit(User $user): View
     {
-        $roles = Role::orderBy('name')->pluck('name', 'id');
+        if ($user->hasRole('Super Admin') && !auth()->user()?->hasRole('Super Admin')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $roleQuery = Role::orderBy('name');
+        if (!auth()->user()?->hasRole('Super Admin')) {
+            $roleQuery->where('name', '!=', 'Super Admin');
+        }
+        $roles = $roleQuery->pluck('name', 'id');
         $assignedRoles = $user->roles()->pluck('id')->all();
         $canAssignRole = auth()->user()?->can('roles.assign');
 
@@ -112,6 +136,10 @@ class UserController extends Controller
 
     public function update(Request $request, User $user): RedirectResponse
     {
+        if ($user->hasRole('Super Admin') && !auth()->user()?->hasRole('Super Admin')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
@@ -139,7 +167,11 @@ class UserController extends Controller
 
         if (auth()->user()?->can('roles.assign')) {
             $roleIds = $data['roles'] ?? [];
-            $user->syncRoles(Role::whereIn('id', $roleIds)->pluck('name')->all());
+            $roleQuery = Role::whereIn('id', $roleIds);
+            if (!auth()->user()?->hasRole('Super Admin')) {
+                $roleQuery->where('name', '!=', 'Super Admin');
+            }
+            $user->syncRoles($roleQuery->pluck('name')->all());
         }
 
         return redirect()->route('users.index')->with('success', __('User updated.'));
@@ -147,6 +179,10 @@ class UserController extends Controller
 
     public function destroy(User $user): RedirectResponse
     {
+        if ($user->hasRole('Super Admin') && !auth()->user()?->hasRole('Super Admin')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         if (auth()->id() === $user->id) {
             return redirect()->route('users.index')->with('success', __('Cannot delete your own user.'));
         }
@@ -156,4 +192,3 @@ class UserController extends Controller
         return redirect()->route('users.index')->with('success', __('User deleted.'));
     }
 }
-

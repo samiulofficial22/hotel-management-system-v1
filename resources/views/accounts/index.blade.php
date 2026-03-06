@@ -11,7 +11,21 @@
 <thead><tr><th>ID</th><th>Code</th><th>Name</th><th>Type</th><th>Active</th><th></th></tr></thead>
 <tbody>
 @foreach($accounts as $a)
-<tr><td>{{ $loop->iteration }}</td><td>{{ $a->code }}</td><td>{{ $a->name }}</td><td>{{ $a->type }}</td><td>{{ $a->is_active ? 'Yes' : 'No' }}</td><td><a href="{{ route('accounts.edit', $a) }}">Edit</a></td></tr>
+<tr>
+    <td>{{ $loop->iteration }}</td>
+    <td>{{ $a->code }}</td>
+    <td>{{ $a->name }}</td>
+    <td>{{ $a->type }}</td>
+    <td>{{ $a->is_active ? 'Yes' : 'No' }}</td>
+    <td>
+        <a href="{{ route('accounts.edit', $a) }}" class="btn btn-sm btn-info">Edit</a>
+        <form action="{{ route('accounts.destroy', $a) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this account?');">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+        </form>
+    </td>
+</tr>
 @endforeach
 </tbody>
 </table>
