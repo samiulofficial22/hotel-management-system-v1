@@ -50,7 +50,21 @@ Route::middleware('guest')->group(function (): void {
     Route::post('login', [LoginController::class , 'login']);
     Route::get('register', [RegisterController::class , 'showRegistrationForm'])->name('register');
     Route::post('register', [RegisterController::class , 'register']);
-});
+
+    // Password Reset Routes
+    Route::get('password/reset', function () {
+            return "Reset Password Request"; }
+        )->name('password.request');
+        Route::post('password/email', function () {
+            return "Send Reset Link"; }
+        )->name('password.email');
+        Route::get('password/reset/{token}', function ($token) {
+            return "Password Reset Form for token: " . $token . "<br>To implement, create ResetPasswordController and view auth.passwords.reset";
+        }
+        )->name('password.reset');
+        Route::post('password/reset', function () {
+            return "Update Password"; }
+        )->name('password.update');    });
 Route::post('logout', [LoginController::class , 'logout'])->name('logout')->middleware('auth');
 
 Route::middleware(['auth'])->group(function (): void {
