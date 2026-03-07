@@ -100,7 +100,9 @@ class AccountsController extends Controller
         $revenue = $this->ledgerService->totalRevenue($from, $to);
         $expense = $this->ledgerService->totalExpense($from, $to);
         $profit = $revenue - $expense;
-        return view('accounts.report-profit-loss', compact('from', 'to', 'revenue', 'expense', 'profit'));
+        $revenueBreakdown = $this->ledgerService->revenueByAccount($from, $to);
+        $expenseBreakdown = $this->ledgerService->expenseByAccount($from, $to);
+        return view('accounts.report-profit-loss', compact('from', 'to', 'revenue', 'expense', 'profit', 'revenueBreakdown', 'expenseBreakdown'));
     }
 
     public function reportExpense(Request $request): View

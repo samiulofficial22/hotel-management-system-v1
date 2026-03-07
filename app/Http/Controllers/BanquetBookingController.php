@@ -12,10 +12,12 @@ use Illuminate\Validation\ValidationException;
 
 class BanquetBookingController extends Controller
 {
-    public function __construct(
-        protected BanquetBookingService $service,
-        protected BanquetVenueService $venueService
-    ) {}
+    public function __construct(protected
+        BanquetBookingService $service, protected
+        BanquetVenueService $venueService
+        )
+    {
+    }
 
     public function index(Request $request): View
     {
@@ -39,7 +41,8 @@ class BanquetBookingController extends Controller
         try {
             $booking = $this->service->create($validated, auth()->id());
             return redirect()->route('banquet.bookings.show', $booking)->with('success', __('Banquet booking created.'));
-        } catch (ValidationException $e) {
+        }
+        catch (ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
         }
     }
@@ -62,8 +65,15 @@ class BanquetBookingController extends Controller
         try {
             $this->service->update($booking, $validated);
             return redirect()->route('banquet.bookings.show', $booking)->with('success', __('Banquet booking updated.'));
-        } catch (ValidationException $e) {
+        }
+        catch (ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
         }
+    }
+
+    public function destroy(BanquetBooking $booking): RedirectResponse
+    {
+        $this->service->delete($booking);
+        return redirect()->route('banquet.bookings.index')->with('success', __('Banquet booking deleted.'));
     }
 }

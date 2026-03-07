@@ -9,12 +9,15 @@ use Illuminate\Validation\ValidationException;
 
 class BanquetVenueService
 {
-    public function __construct(protected BanquetVenueRepository $repository) {}
+    public function __construct(protected BanquetVenueRepository $repository)
+    {
+    }
 
     public function rules(bool $forUpdate = false): array
     {
         return [
             'name' => ['required', 'string', 'max:100'],
+            'location' => ['nullable', 'string', 'max:255'],
             'capacity' => ['required', 'integer', 'min:1'],
             'hourly_rate' => ['nullable', 'numeric', 'min:0'],
             'fixed_rate' => ['nullable', 'numeric', 'min:0'],

@@ -11,6 +11,7 @@ class BanquetBooking extends Model
         'banquet_venue_id', 'event_name', 'event_date', 'start_time', 'end_time',
         'guest_count', 'package_name', 'total_amount', 'status',
         'contact_name', 'contact_phone', 'contact_email', 'notes', 'created_by',
+        'payment_method', 'payment_status',
     ];
 
     protected $casts = [
@@ -44,6 +45,15 @@ class BanquetBooking extends Model
     /** @return BelongsTo<User, $this> */
     public function createdBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class , 'created_by');
+    }
+
+    public function getDurationHoursAttribute(): float
+    {
+        if (!$this->start_time || !$this->end_time)
+            return 0;
+        $start = \Carbon\Carbon::parse($this->start_time);
+        $end = \Carbon\Carbon::parse($this->end_time);
+        return round($start->diffInMinutes($end) / 60, 2);
     }
 }

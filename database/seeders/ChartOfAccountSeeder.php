@@ -18,6 +18,7 @@ class ChartOfAccountSeeder extends Seeder
             ['code' => 'AR', 'name' => 'Accounts Receivable', 'type' => ChartOfAccount::TYPE_ASSET, 'sort_order' => 30],
             ['code' => 'ROOM_REV', 'name' => 'Room Revenue', 'type' => ChartOfAccount::TYPE_REVENUE, 'sort_order' => 110],
             ['code' => 'POS_REV', 'name' => 'POS Revenue', 'type' => ChartOfAccount::TYPE_REVENUE, 'sort_order' => 120],
+            ['code' => 'BANQUET_REV', 'name' => 'Banquet Revenue', 'type' => ChartOfAccount::TYPE_REVENUE, 'sort_order' => 125],
             ['code' => 'OTHER_REV', 'name' => 'Other Revenue', 'type' => ChartOfAccount::TYPE_REVENUE, 'sort_order' => 130],
             ['code' => 'SALARY_EXP', 'name' => 'Salary Expense', 'type' => ChartOfAccount::TYPE_EXPENSE, 'sort_order' => 210],
             ['code' => 'UTILITY_EXP', 'name' => 'Utility Expense', 'type' => ChartOfAccount::TYPE_EXPENSE, 'sort_order' => 220],
@@ -27,13 +28,13 @@ class ChartOfAccountSeeder extends Seeder
 
         foreach ($accounts as $data) {
             ChartOfAccount::firstOrCreate(
-                ['code' => $data['code']],
-                [
-                    'name' => $data['name'],
-                    'type' => $data['type'],
-                    'is_active' => true,
-                    'sort_order' => $data['sort_order'],
-                ]
+            ['code' => $data['code']],
+            [
+                'name' => $data['name'],
+                'type' => $data['type'],
+                'is_active' => true,
+                'sort_order' => $data['sort_order'],
+            ]
             );
         }
     }

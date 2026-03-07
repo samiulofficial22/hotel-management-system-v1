@@ -7,6 +7,7 @@
     <title>@yield('title', __('messages.Hotel'))</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
     <style>
         .sidebar { min-height: 100vh; width: 260px; transition: transform 0.2s, margin 0.2s; }
         .sidebar .nav-link { color: rgba(255,255,255,0.85); padding: 0.6rem 1rem; border-radius: 0.35rem; }

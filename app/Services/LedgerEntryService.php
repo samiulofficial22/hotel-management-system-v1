@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\LedgerEntry;
+use App\Models\ChartOfAccount;
 use App\Repositories\LedgerEntryRepository;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -26,7 +27,7 @@ class LedgerEntryService
         }
         $debit = (float) $q->clone()->sum('debit');
         $credit = (float) $q->clone()->sum('credit');
-        $account = \App\Models\ChartOfAccount::find($accountId);
+        $account = ChartOfAccount::find($accountId);
         $type = $account?->type ?? 'asset';
         return in_array($type, ['asset', 'expense'], true) ? $debit - $credit : $credit - $debit;
     }
@@ -71,7 +72,7 @@ class LedgerEntryService
     /** Sum of (debit - credit) for expense accounts in date range. */
     public function totalExpense(Carbon $from, Carbon $to): float
     {
-        $accountIds = \App\Models\ChartOfAccount::where('type', 'expense')->where('is_active', true)->pluck('id');
+        $accountIds = ChartOfAccount::where('type', 'expense')->where('is_active', true)->pluck('id');
         $debit = (float) LedgerEntry::whereIn('account_id', $accountIds)->whereBetween('entry_date', [$from->toDateString(), $to->toDateString()])->sum('debit');
         $credit = (float) LedgerEntry::whereIn('account_id', $accountIds)->whereBetween('entry_date', [$from->toDateString(), $to->toDateString()])->sum('credit');
         return $debit - $credit;
@@ -80,7 +81,7 @@ class LedgerEntryService
     /** Sum of (credit - debit) for revenue accounts in date range. */
     public function totalRevenue(Carbon $from, Carbon $to): float
     {
-        $accountIds = \App\Models\ChartOfAccount::where('type', 'revenue')->where('is_active', true)->pluck('id');
+        $accountIds = ChartOfAccount::where('type', 'revenue')->where('is_active', true)->pluck('id');
         $debit = (float) LedgerEntry::whereIn('account_id', $accountIds)->whereBetween('entry_date', [$from->toDateString(), $to->toDateString()])->sum('debit');
         $credit = (float) LedgerEntry::whereIn('account_id', $accountIds)->whereBetween('entry_date', [$from->toDateString(), $to->toDateString()])->sum('credit');
         return $credit - $debit;
@@ -89,7 +90,7 @@ class LedgerEntryService
     /** Expense breakdown by account (code, name, amount) for date range. */
     public function expenseByAccount(Carbon $from, Carbon $to): array
     {
-        $accounts = \App\Models\ChartOfAccount::where('type', 'expense')->where('is_active', true)->orderBy('sort_order')->get();
+        $accounts = ChartOfAccount::where('type', 'expense')->where('is_active', true)->orderBy('sort_order')->get();
         $result = [];
         foreach ($accounts as $acc) {
             $debit = (float) LedgerEntry::where('account_id', $acc->id)->whereBetween('entry_date', [$from->toDateString(), $to->toDateString()])->sum('debit');
@@ -102,10 +103,26 @@ class LedgerEntryService
         return $result;
     }
 
+    /** Revenue breakdown by account (code, name, amount) for date range. */
+    public function revenueByAccount(Carbon $from, Carbon $to): array
+    {
+        $accounts = ChartOfAccount::where('type', 'revenue')->where('is_active', true)->orderBy('sort_order')->get();
+        $result = [];
+        foreach ($accounts as $acc) {
+            $debit = (float) LedgerEntry::where('account_id', $acc->id)->whereBetween('entry_date', [$from->toDateString(), $to->toDateString()])->sum('debit');
+            $credit = (float) LedgerEntry::where('account_id', $acc->id)->whereBetween('entry_date', [$from->toDateString(), $to->toDateString()])->sum('credit');
+            $amount = (float) $credit - (float) $debit;
+            if ($amount != 0) {
+                $result[] = ['code' => $acc->code, 'name' => $acc->name, 'amount' => $amount];
+            }
+        }
+        return $result;
+    }
+
     /** Daily cash movement: date => net (debit - credit) for CASH account. */
     public function dailyCashSummary(Carbon $from, Carbon $to): array
     {
-        $cashAccount = \App\Models\ChartOfAccount::where('code', 'CASH')->where('is_active', true)->first();
+        $cashAccount = ChartOfAccount::where('code', 'CASH')->where('is_active', true)->first();
         if (! $cashAccount) {
             return [];
         }

@@ -170,7 +170,7 @@ Route::middleware(['auth'])->group(function (): void {
                     Route::get('venues/{venue}/edit', [BanquetVenueController::class , 'edit'])->name('venues.edit');
                     Route::put('venues/{venue}', [BanquetVenueController::class , 'update'])->name('venues.update');
                     Route::delete('venues/{venue}', [BanquetVenueController::class , 'destroy'])->name('venues.destroy');
-                    Route::resource('bookings', BanquetBookingController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update']);
+                    Route::resource('bookings', BanquetBookingController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
                 }
                 );
             }

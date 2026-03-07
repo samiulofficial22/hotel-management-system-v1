@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class BanquetVenue extends Model
 {
-    protected $fillable = ['name', 'capacity', 'hourly_rate', 'fixed_rate', 'description', 'is_active'];
+    protected $fillable = ['name', 'location', 'capacity', 'hourly_rate', 'fixed_rate', 'description', 'is_active'];
 
     protected $casts = [
         'hourly_rate' => 'decimal:2',
