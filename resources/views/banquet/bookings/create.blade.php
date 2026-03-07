@@ -109,12 +109,12 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <span class="text-muted small">Estimated Total Amount</span>
-                                    <h4 class="mb-0 text-primary">$<span id="estimatedAmount">0.00</span></h4>
+                                    <h4 class="mb-0 text-primary">৳<span id="estimatedAmount">0.00</span></h4>
                                 </div>
                                 <div class="w-50">
                                     <label class="form-label small mb-1 fw-bold">Total Amount <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <span class="input-group-text">$</span>
+                                        <span class="input-group-text">৳</span>
                                         <input type="number" name="total_amount" id="totalAmount" class="form-control fw-bold h5 mb-0 py-2" step="0.01" min="0" value="{{ old('total_amount', 0) }}" required>
                                     </div>
                                 </div>

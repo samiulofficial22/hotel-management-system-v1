@@ -32,12 +32,12 @@
                             @error('capacity')<div class="text-danger small">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label class="form-label fw-bold">Hourly Rate ($)</label>
+                            <label class="form-label fw-bold">Hourly Rate (৳)</label>
                             <input type="number" name="hourly_rate" class="form-control" step="0.01" min="0" value="{{ old('hourly_rate', $venue->hourly_rate) }}">
                             @error('hourly_rate')<div class="text-danger small">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label class="form-label fw-bold">Fixed Rate ($)</label>
+                            <label class="form-label fw-bold">Fixed Rate (৳)</label>
                             <input type="number" name="fixed_rate" class="form-control" step="0.01" min="0" value="{{ old('fixed_rate', $venue->fixed_rate) }}">
                             @error('fixed_rate')<div class="text-danger small">{{ $message }}</div>@enderror
                         </div>

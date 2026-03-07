@@ -59,7 +59,7 @@
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="small text-muted text-uppercase fw-bold d-block mb-1">Total Amount</label>
-                        <div class="h5 mb-0 text-success fw-bold">$ {{ number_format($booking->total_amount, 2) }}</div>
+                        <div class="h5 mb-0 text-success fw-bold">৳ {{ number_format($booking->total_amount, 2) }}</div>
                     </div>
                 </div>
 
