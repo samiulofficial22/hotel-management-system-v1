@@ -11,7 +11,9 @@ use Illuminate\Validation\ValidationException;
 
 class OutletController extends Controller
 {
-    public function __construct(protected OutletService $service) {}
+    public function __construct(protected OutletService $service)
+    {
+    }
 
     public function index(): View
     {
@@ -30,7 +32,8 @@ class OutletController extends Controller
         try {
             $this->service->create($validated);
             return redirect()->route('outlets.index')->with('success', __('Outlet created.'));
-        } catch (ValidationException $e) {
+        }
+        catch (ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
         }
     }
@@ -42,11 +45,12 @@ class OutletController extends Controller
 
     public function update(Request $request, Outlet $outlet): RedirectResponse
     {
-        $validated = $request->validate($this->service->rules(true));
+        $validated = $request->validate($this->service->rules($outlet->id));
         try {
             $this->service->update($outlet, $validated);
             return redirect()->route('outlets.index')->with('success', __('Outlet updated.'));
-        } catch (ValidationException $e) {
+        }
+        catch (ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
         }
     }
@@ -56,7 +60,8 @@ class OutletController extends Controller
         try {
             $this->service->delete($outlet);
             return redirect()->route('outlets.index')->with('success', __('Outlet deleted.'));
-        } catch (ValidationException $e) {
+        }
+        catch (ValidationException $e) {
             return redirect()->route('outlets.index')->withErrors($e->errors());
         }
     }

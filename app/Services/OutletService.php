@@ -9,15 +9,17 @@ use Illuminate\Validation\ValidationException;
 
 class OutletService
 {
-    public function __construct(protected OutletRepository $repository) {}
-
-    public function rules(bool $forUpdate = false): array
+    public function __construct(protected OutletRepository $repository)
     {
-        $codeRule = $forUpdate ? 'nullable|string|max:20|unique:outlets,code,' : 'nullable|string|max:20|unique:outlets,code';
+    }
+
+    public function rules(?int $outletId = null): array
+    {
+        $uniqueRule = $outletId ? 'unique:outlets,code,' . $outletId : 'unique:outlets,code';
         return [
             'name' => ['required', 'string', 'max:100'],
             'type' => ['required', 'in:restaurant,cafe,bar'],
-            'code' => [$codeRule],
+            'code' => ['nullable', 'string', 'max:20', $uniqueRule],
             'is_active' => ['boolean'],
         ];
     }
