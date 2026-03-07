@@ -33,6 +33,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'marketing.manage', 'marketing.view',
             'departments.manage',
             'guest.manage', 'guest.approve',
+            'laundry.manage', 'laundry.view',
+            'spa.manage', 'spa.view',
         ];
 
         foreach ($permissions as $name) {
@@ -40,12 +42,12 @@ class RolesAndPermissionsSeeder extends Seeder
         }
 
         $roles = [
-            'Super Admin' => $permissions,
-            'Admin' => $permissions,
-            'Manager' => ['dashboard.view', 'room_types.manage', 'rooms.manage', 'guests.manage', 'bookings.manage', 'bookings.view', 'bookings.checkin_checkout', 'invoices.manage', 'payments.manage', 'reports.view', 'pos.manage', 'pos.view', 'pos.create', 'pos.pay', 'pos.void', 'pos.view_reports', 'kitchen.manage', 'kitchen.view', 'banquet.manage', 'banquet.view', 'housekeeping.manage', 'housekeeping.view', 'housekeeping.assign_others', 'minibar.manage', 'minibar.view', 'store.manage', 'store.view', 'maintenance.manage', 'maintenance.view', 'departments.manage', 'guest.manage', 'guest.approve'],
-            'Receptionist' => ['dashboard.view', 'rooms.manage', 'guests.manage', 'bookings.manage', 'bookings.view', 'bookings.checkin_checkout', 'invoices.manage', 'payments.manage', 'pos.manage', 'pos.view', 'pos.create', 'pos.pay', 'pos.view_reports', 'kitchen.view', 'banquet.view', 'maintenance.view', 'guest.manage'],
-            'Housekeeper' => ['dashboard.view', 'rooms.manage', 'housekeeping.manage', 'housekeeping.view', 'minibar.view', 'maintenance.view'],
-            'Accountant' => ['dashboard.view', 'invoices.manage', 'payments.manage', 'reports.view', 'pos.view', 'pos.view_reports', 'accounts.manage', 'accounts.view', 'payroll.manage', 'payroll.view', 'payroll.generate', 'payroll.approve', 'payroll.pay'],
+            'Super Admin' => array_merge($permissions, ['laundry.manage', 'laundry.view', 'spa.manage', 'spa.view']),
+            'Admin' => array_merge($permissions, ['laundry.manage', 'laundry.view', 'spa.manage', 'spa.view']),
+            'Manager' => array_merge(['dashboard.view', 'room_types.manage', 'rooms.manage', 'guests.manage', 'bookings.manage', 'bookings.view', 'bookings.checkin_checkout', 'invoices.manage', 'payments.manage', 'reports.view', 'pos.manage', 'pos.view', 'pos.create', 'pos.pay', 'pos.void', 'pos.view_reports', 'kitchen.manage', 'kitchen.view', 'banquet.manage', 'banquet.view', 'housekeeping.manage', 'housekeeping.view', 'housekeeping.assign_others', 'minibar.manage', 'minibar.view', 'store.manage', 'store.view', 'maintenance.manage', 'maintenance.view', 'departments.manage', 'guest.manage', 'guest.approve'], ['laundry.manage', 'laundry.view', 'spa.manage', 'spa.view']),
+            'Receptionist' => array_merge(['dashboard.view', 'rooms.manage', 'guests.manage', 'bookings.manage', 'bookings.view', 'bookings.checkin_checkout', 'invoices.manage', 'payments.manage', 'pos.manage', 'pos.view', 'pos.create', 'pos.pay', 'pos.view_reports', 'kitchen.view', 'banquet.view', 'maintenance.view', 'guest.manage'], ['laundry.view', 'spa.view', 'laundry.manage', 'spa.manage']),
+            'Housekeeper' => ['dashboard.view', 'rooms.manage', 'housekeeping.manage', 'housekeeping.view', 'minibar.view', 'maintenance.view', 'laundry.view', 'laundry.manage'],
+            'Accountant' => ['dashboard.view', 'invoices.manage', 'payments.manage', 'reports.view', 'pos.view', 'pos.view_reports', 'accounts.manage', 'accounts.view', 'payroll.manage', 'payroll.view', 'payroll.generate', 'payroll.approve', 'payroll.pay', 'laundry.view', 'spa.view'],
             'Guest' => [],
         ];
 

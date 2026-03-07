@@ -171,6 +171,24 @@
                 <i class="bi bi-calendar-event"></i> {{ __('messages.Banquet Bookings') }}
             </a>
             @endcan
+            @can('laundry.view')
+            <span class="px-3 py-1 small text-white-50 text-uppercase">{{ __('Laundry') }}</span>
+            <a class="nav-link {{ request()->routeIs('laundry.items.*') ? 'active' : '' }}" href="{{ route('laundry.items.index') }}">
+                <i class="bi bi-list-ul"></i> {{ __('Laundry Items') }}
+            </a>
+            <a class="nav-link {{ request()->routeIs('laundry.orders.*') ? 'active' : '' }}" href="{{ route('laundry.orders.index') }}">
+                <i class="bi bi-moisture"></i> {{ __('Laundry Orders') }}
+            </a>
+            @endcan
+            @can('spa.view')
+            <span class="px-3 py-1 small text-white-50 text-uppercase">{{ __('Spa') }}</span>
+            <a class="nav-link {{ request()->routeIs('spa.services.*') ? 'active' : '' }}" href="{{ route('spa.services.index') }}">
+                <i class="bi bi-card-checklist"></i> {{ __('Spa Services') }}
+            </a>
+            <a class="nav-link {{ request()->routeIs('spa.bookings.*') ? 'active' : '' }}" href="{{ route('spa.bookings.index') }}">
+                <i class="bi bi-stars"></i> {{ __('Spa Bookings') }}
+            </a>
+            @endcan
             @can('housekeeping.view')
             <span class="px-3 py-1 small text-white-50 text-uppercase">{{ __('messages.Operations') }}</span>
             <a class="nav-link {{ request()->routeIs('housekeeping.index') ? 'active' : '' }}" href="{{ route('housekeeping.index') }}">

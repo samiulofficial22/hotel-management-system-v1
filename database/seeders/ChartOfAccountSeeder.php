@@ -19,6 +19,8 @@ class ChartOfAccountSeeder extends Seeder
             ['code' => 'ROOM_REV', 'name' => 'Room Revenue', 'type' => ChartOfAccount::TYPE_REVENUE, 'sort_order' => 110],
             ['code' => 'POS_REV', 'name' => 'POS Revenue', 'type' => ChartOfAccount::TYPE_REVENUE, 'sort_order' => 120],
             ['code' => 'BANQUET_REV', 'name' => 'Banquet Revenue', 'type' => ChartOfAccount::TYPE_REVENUE, 'sort_order' => 125],
+            ['code' => 'LAUNDRY_REV', 'name' => 'Laundry Revenue', 'type' => ChartOfAccount::TYPE_REVENUE, 'sort_order' => 127],
+            ['code' => 'SPA_REV', 'name' => 'Spa Revenue', 'type' => ChartOfAccount::TYPE_REVENUE, 'sort_order' => 128],
             ['code' => 'OTHER_REV', 'name' => 'Other Revenue', 'type' => ChartOfAccount::TYPE_REVENUE, 'sort_order' => 130],
             ['code' => 'SALARY_EXP', 'name' => 'Salary Expense', 'type' => ChartOfAccount::TYPE_EXPENSE, 'sort_order' => 210],
             ['code' => 'UTILITY_EXP', 'name' => 'Utility Expense', 'type' => ChartOfAccount::TYPE_EXPENSE, 'sort_order' => 220],

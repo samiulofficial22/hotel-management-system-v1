@@ -219,6 +219,21 @@ Route::middleware(['auth'])->group(function (): void {
         }
         );
 
+        // Phase 5: Laundry & Spa
+        Route::middleware('permission:laundry.view')->prefix('laundry')->name('laundry.')->group(function (): void {
+            Route::resource('items', \App\Http\Controllers\LaundryItemController::class)->except(['show'])->middleware('permission:laundry.manage');
+            Route::resource('orders', \App\Http\Controllers\LaundryOrderController::class);
+            Route::post('orders/{order}/status', [\App\Http\Controllers\LaundryOrderController::class , 'updateStatus'])->name('orders.update-status');
+        }
+        );
+
+        Route::middleware('permission:spa.view')->prefix('spa')->name('spa.')->group(function (): void {
+            Route::resource('services', \App\Http\Controllers\SpaServiceController::class)->except(['show'])->middleware('permission:spa.manage');
+            Route::resource('bookings', \App\Http\Controllers\SpaBookingController::class);
+            Route::post('bookings/{booking}/status', [\App\Http\Controllers\SpaBookingController::class , 'updateStatus'])->name('bookings.update-status');
+        }
+        );
+
         // Phase 4: Accounts, HR, Marketing, Reports
         Route::middleware('permission:accounts.view')->group(function (): void {
             Route::get('/accounts', [AccountsController::class , 'index'])->name('accounts.index');
