@@ -234,6 +234,13 @@ Route::middleware(['auth'])->group(function (): void {
         }
         );
 
+        Route::middleware('permission:refreshments.view')->prefix('refreshments')->name('refreshments.')->group(function (): void {
+            Route::get('transactions/report', [\App\Http\Controllers\RoomRefreshmentTransactionController::class , 'report'])->name('transactions.report');
+            Route::resource('items', \App\Http\Controllers\RoomRefreshmentItemController::class)->middleware('permission:refreshments.manage');
+            Route::resource('transactions', \App\Http\Controllers\RoomRefreshmentTransactionController::class)->only(['index', 'create', 'store']);
+        }
+        );
+
         // Phase 4: Accounts, HR, Marketing, Reports
         Route::middleware('permission:accounts.view')->group(function (): void {
             Route::get('/accounts', [AccountsController::class , 'index'])->name('accounts.index');

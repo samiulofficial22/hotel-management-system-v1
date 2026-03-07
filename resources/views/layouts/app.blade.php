@@ -200,16 +200,18 @@
                 <i class="bi bi-table"></i> {{ __('messages.All Housekeeping Work') }}
             </a>
             @endcan
-            <!-- @can('minibar.manage')
-            <a class="nav-link {{ request()->routeIs('minibar.*') ? 'active' : '' }}" href="{{ route('minibar.index') }}">
-                <i class="bi bi-cup-straw"></i> {{ __('messages.Minibar') }}
+            @can('refreshments.view')
+            <span class="px-3 py-1 small text-white-50 text-uppercase">{{ __('Room Refreshments') }}</span>
+            <a class="nav-link {{ request()->routeIs('refreshments.items.*') ? 'active' : '' }}" href="{{ route('refreshments.items.index') }}">
+                <i class="bi bi-box"></i> {{ __('Refreshment Items') }}
             </a>
-            @endcan -->
-            <!-- @can('store.manage')
-            <a class="nav-link {{ request()->routeIs('store.*') ? 'active' : '' }}" href="{{ route('store.index') }}">
-                <i class="bi bi-box-seam"></i> {{ __('messages.Store') }}
+            <a class="nav-link {{ request()->routeIs('refreshments.transactions.index') ? 'active' : '' }}" href="{{ route('refreshments.transactions.index') }}">
+                <i class="bi bi-cart"></i> {{ __('Consumption History') }}
             </a>
-            @endcan -->
+            <a class="nav-link {{ request()->routeIs('refreshments.transactions.report') ? 'active' : '' }}" href="{{ route('refreshments.transactions.report') }}">
+                <i class="bi bi-graph-up"></i> {{ __('Sales Report') }}
+            </a>
+            @endcan
             @can('maintenance.view')
             <a class="nav-link {{ request()->routeIs('maintenance.*') ? 'active' : '' }}" href="{{ route('maintenance.index') }}">
                 <i class="bi bi-tools"></i> {{ __('messages.Maintenance') }}
