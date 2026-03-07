@@ -111,7 +111,7 @@ class LedgerEntryService
         foreach ($accounts as $acc) {
             $debit = (float) LedgerEntry::where('account_id', $acc->id)->whereBetween('entry_date', [$from->toDateString(), $to->toDateString()])->sum('debit');
             $credit = (float) LedgerEntry::where('account_id', $acc->id)->whereBetween('entry_date', [$from->toDateString(), $to->toDateString()])->sum('credit');
-            $amount = (float) $credit - (float) $debit;
+            $amount = $credit - $debit;
             if ($amount != 0) {
                 $result[] = ['code' => $acc->code, 'name' => $acc->name, 'amount' => $amount];
             }
@@ -120,24 +120,45 @@ class LedgerEntryService
     }
 
     /** Daily cash movement: date => net (debit - credit) for CASH account. */
-    public function dailyCashSummary(Carbon $from, Carbon $to): array
+    public function dailyCashSummary(Carbon $start, Carbon $end): array
     {
         $cashAccount = ChartOfAccount::where('code', 'CASH')->where('is_active', true)->first();
-        if (! $cashAccount) {
-            return [];
+        if (! $cashAccount) return [];
+
+        // Initial balance before the 'from' date
+        $runningBalance = $this->balanceForAccount($cashAccount->id, $start->copy()->subDay());
+
+        $summary = [];
+        $currentDate = $start->copy();
+
+        while ($currentDate->lte($end)) {
+            $dateStr = $currentDate->toDateString();
+            
+            $dayEntries = LedgerEntry::where('account_id', $cashAccount->id)
+                ->whereDate('entry_date', $dateStr)
+                ->selectRaw('SUM(debit) as totalIn, SUM(credit) as totalOut')
+                ->first();
+
+            $opening = $runningBalance;
+            $cashIn = (float) ($dayEntries->totalIn ?? 0);
+            $cashOut = (float) ($dayEntries->totalOut ?? 0);
+            $net = $cashIn - $cashOut;
+            $closing = $opening + $net;
+
+            if ($cashIn != 0 || $cashOut != 0 || $opening != 0) {
+                $summary[$dateStr] = [
+                    'opening' => $opening,
+                    'cashIn' => $cashIn,
+                    'cashOut' => $cashOut,
+                    'net' => $net,
+                    'closing' => $closing
+                ];
+            }
+
+            $runningBalance = $closing;
+            $currentDate->addDay();
         }
-        $entries = LedgerEntry::where('account_id', $cashAccount->id)
-            ->whereBetween('entry_date', [$from->toDateString(), $to->toDateString()])
-            ->selectRaw('entry_date, SUM(debit) as debit, SUM(credit) as credit')
-            ->groupBy('entry_date')
-            ->orderBy('entry_date')
-            ->get();
-        return $entries->mapWithKeys(function ($row) {
-            $net = (float) $row->debit - (float) $row->credit;
-            $dateKey = $row->entry_date instanceof Carbon
-                ? $row->entry_date->toDateString()
-                : Carbon::parse($row->entry_date)->toDateString();
-            return [$dateKey => $net];
-        })->all();
+
+        return $summary;
     }
 }
