@@ -217,4 +217,57 @@ class GuestController extends Controller
 
         return redirect()->route('guests.show', $guest)->with('success', __('Guest portal access revoked.'));
     }
+
+    public function apiSearch(Request $request)
+    {
+        $query = $request->input('q', '');
+        if (empty($query)) {
+            return response()->json([]);
+        }
+
+        $guests = Guest::where('first_name', 'LIKE', "%{$query}%")
+            ->orWhere('last_name', 'LIKE', "%{$query}%")
+            ->orWhere('email', 'LIKE', "%{$query}%")
+            ->orWhere('phone', 'LIKE', "%{$query}%")
+            ->orWhere('nid_number', 'LIKE', "%{$query}%")
+            ->orWhere('id_number', 'LIKE', "%{$query}%")
+            ->take(10)
+            ->get();
+
+        $results = $guests->map(function ($g) {
+            return [
+            'id' => $g->id,
+            'name' => $g->full_name,
+            'phone' => $g->phone ?? 'No Phone',
+            'email' => $g->email ?? 'No Email',
+            ];
+        });
+
+        return response()->json($results);
+    }
+
+    public function quickStore(Request $request)
+    {
+        $rules = [
+            'first_name' => ['required', 'string', 'max:100'],
+            'last_name' => ['required', 'string', 'max:100'],
+            'email' => ['nullable', 'email', 'max:255', \Illuminate\Validation\Rule::unique('guests', 'email')],
+            'phone' => ['nullable', 'string', 'max:30', \Illuminate\Validation\Rule::unique('guests', 'phone')],
+            'nid_number' => ['nullable', 'string', 'max:50'],
+            'address' => ['nullable', 'string'],
+        ];
+
+        $validated = $request->validate($rules);
+        $guest = $this->service->create($validated);
+
+        return response()->json([
+            'success' => true,
+            'guest' => [
+                'id' => $guest->id,
+                'name' => $guest->full_name,
+                'phone' => $guest->phone ?? 'No Phone',
+                'email' => $guest->email ?? 'No Email',
+            ]
+        ]);
+    }
 }

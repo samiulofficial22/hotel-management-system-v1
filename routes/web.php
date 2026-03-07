@@ -53,18 +53,22 @@ Route::middleware('guest')->group(function (): void {
 
     // Password Reset Routes
     Route::get('password/reset', function () {
-            return "Reset Password Request"; }
+            return "Reset Password Request";
+        }
         )->name('password.request');
         Route::post('password/email', function () {
-            return "Send Reset Link"; }
+            return "Send Reset Link";
+        }
         )->name('password.email');
         Route::get('password/reset/{token}', function ($token) {
             return "Password Reset Form for token: " . $token . "<br>To implement, create ResetPasswordController and view auth.passwords.reset";
         }
         )->name('password.reset');
         Route::post('password/reset', function () {
-            return "Update Password"; }
-        )->name('password.update');    });
+            return "Update Password";
+        }
+        )->name('password.update');
+    });
 Route::post('logout', [LoginController::class , 'logout'])->name('logout')->middleware('auth');
 
 Route::middleware(['auth'])->group(function (): void {
@@ -108,9 +112,13 @@ Route::middleware(['auth'])->group(function (): void {
 
         // Room types & rooms
         Route::resource('room-types', RoomTypeController::class)->except(['show'])->middleware('permission:room_types.manage');
+        Route::get('/api/rooms/available', [RoomController::class , 'apiAvailable'])->name('api.rooms.available');
         Route::resource('rooms', RoomController::class)->except(['show'])->middleware('permission:rooms.manage');
 
         // Guests
+        Route::get('/api/guests/search', [GuestController::class , 'apiSearch'])->name('api.guests.search');
+        Route::post('/api/guests/quick-store', [GuestController::class , 'quickStore'])->name('api.guests.quick-store');
+
         Route::resource('guests', GuestController::class)->middleware('permission:guests.manage');
         Route::post('guests/{guest}/revoke-portal', [GuestController::class , 'revokePortal'])
             ->name('guests.revoke-portal')
