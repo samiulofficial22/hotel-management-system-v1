@@ -40,7 +40,16 @@ class LaundryService
                     ->first();
                 if ($roomBooking) {
                     $invoice = $this->invoiceService->getOrCreateOpenInvoiceForBooking($roomBooking);
-                    $this->invoiceService->addItem($invoice, 'Laundry Order #' . $order->id, 'laundry', 1, $order->total_amount);
+                    // Add each item individually to the invoice for better detail
+                    foreach ($order->items()->with('item')->get() as $orderItem) {
+                        $this->invoiceService->addItem(
+                            $invoice, 
+                            $orderItem->item->name . ' (' . ucfirst($orderItem->service_type) . ')', 
+                            'laundry', 
+                            $orderItem->quantity, 
+                            $orderItem->unit_price
+                        );
+                    }
                     $order->update(['payment_status' => 'paid', 'notes' => ($order->notes ? $order->notes . ' ' : '') . '[Posted to Room Invoice #' . $invoice->invoice_number . ']']);
                 }
             }

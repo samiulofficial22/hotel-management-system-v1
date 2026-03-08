@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Services;
 
 use App\Models\Payment;
@@ -148,9 +147,6 @@ class PosOrderService
         return $order->fresh();
     }
 
-    /**
-     * Record payment(s) for order (supports partial/split). Sets payment_status to paid.
-     */
     public function payOrder(PosOrder $order, array $payments): PosOrder
     {
         if ($order->payment_status !== PosOrder::PAYMENT_STATUS_PENDING) {
@@ -184,9 +180,6 @@ class PosOrderService
         });
     }
 
-    /**
-     * Post order total to guest's room invoice (no immediate payment). Requires booking_id.
-     */
     public function postOrderToRoom(PosOrder $order): PosOrder
     {
         if ($order->payment_status !== PosOrder::PAYMENT_STATUS_PENDING) {
@@ -201,8 +194,13 @@ class PosOrderService
         }
         return DB::transaction(function () use ($order) {
             $invoice = $this->invoiceService->getOrCreateOpenInvoiceForBooking($order->booking);
-            $description = 'POS #' . $order->order_number . ' - ' . str_replace('_', ' ', ucfirst($order->pos_type)) . ' - ' . number_format($order->total, 2);
-            $this->invoiceService->addPosCharge($invoice, $description, (float) $order->total);
+            
+            // Add each item individually to the invoice for better detail
+            foreach ($order->items()->with('menuItem')->get() as $item) {
+                $itemDesc = $item->menuItem->name . ($item->quantity > 1 ? ' (x' . $item->quantity . ')' : '');
+                $this->invoiceService->addPosCharge($invoice, $itemDesc, (float) $item->total);
+            }
+
             $order->update([
                 'payment_status' => PosOrder::PAYMENT_STATUS_POSTED_TO_ROOM,
                 'invoice_id' => $invoice->id,
@@ -212,9 +210,6 @@ class PosOrderService
         });
     }
 
-    /**
-     * Void order (manager only). Cannot void if already paid - require refund flow separately if needed.
-     */
     public function voidOrder(PosOrder $order): PosOrder
     {
         if (!$order->canVoid()) {
