@@ -1,10 +1,13 @@
 <?php
-
 namespace App\Services;
 
 use App\Models\LaundryOrder;
 use App\Models\LaundryOrderItem;
+use App\Models\Booking;
 use App\Repositories\LaundryOrderRepository;
+use App\Services\InvoiceService;
+use App\Services\LedgerEntryService;
+use App\Services\ChartOfAccountService;
 use Illuminate\Support\Facades\DB;
 
 class LaundryService
@@ -12,7 +15,8 @@ class LaundryService
     public function __construct(
         protected LaundryOrderRepository $repository,
         protected LedgerEntryService $ledgerService,
-        protected ChartOfAccountService $chartService
+        protected ChartOfAccountService $chartService,
+        protected InvoiceService $invoiceService
     ) {}
 
     public function createOrder(array $data, array $items)
@@ -29,6 +33,17 @@ class LaundryService
                     'subtotal' => $item['quantity'] * $item['unit_price']
                 ]);
             }
+
+            if ($order->payment_method === 'post_to_room' && $order->room_id) {
+                $roomBooking = Booking::where('room_id', $order->room_id)
+                    ->whereIn('status', [Booking::STATUS_CHECKED_IN])
+                    ->first();
+                if ($roomBooking) {
+                    $invoice = $this->invoiceService->getOrCreateOpenInvoiceForBooking($roomBooking);
+                    $this->invoiceService->addItem($invoice, 'Laundry Order #' . $order->id, 'laundry', 1, $order->total_amount);
+                    $order->update(['payment_status' => 'paid', 'notes' => ($order->notes ? $order->notes . ' ' : '') . '[Posted to Room Invoice #' . $invoice->invoice_number . ']']);
+                }
+            }
             
             if ($order->status === 'delivered' || $order->payment_status === 'paid') {
                 $this->postToLedger($order);
@@ -43,7 +58,19 @@ class LaundryService
         $oldStatus = $order->status;
         $order->update(['status' => $status]);
 
-        if ($oldStatus !== 'delivered' && $status === 'delivered') {
+        if ($oldStatus !== 'delivered' && $status === 'delivered' && $order->payment_status !== 'paid') {
+            $this->postToLedger($order);
+        }
+
+        return $order;
+    }
+
+    public function updatePaymentStatus(LaundryOrder $order, string $paymentStatus)
+    {
+        $oldPaymentStatus = $order->payment_status;
+        $order->update(['payment_status' => $paymentStatus]);
+
+        if ($oldPaymentStatus !== 'paid' && $paymentStatus === 'paid') {
             $this->postToLedger($order);
         }
 
@@ -60,7 +87,6 @@ class LaundryService
         $cashAccount = $this->chartService->findByCode(strtoupper($order->payment_method ?? 'CASH') === 'CASH' ? 'CASH' : 'BANK');
 
         if ($order->payment_status === 'paid') {
-            // Directly to cash/bank
             if ($cashAccount && $revAccount) {
                 $this->ledgerService->createDoubleEntry(
                     $cashAccount->id, $revAccount->id, $amount, now()->toDateString(),
@@ -69,7 +95,6 @@ class LaundryService
                 );
             }
         } else {
-            // To AR
             if ($arAccount && $revAccount) {
                 $this->ledgerService->createDoubleEntry(
                     $arAccount->id, $revAccount->id, $amount, now()->toDateString(),
