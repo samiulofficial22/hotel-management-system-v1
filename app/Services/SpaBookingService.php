@@ -1,5 +1,4 @@
-<?php
-namespace App\Services;
+<?php namespace App\Services;
 
 use App\Models\SpaBooking;
 use App\Models\Booking;

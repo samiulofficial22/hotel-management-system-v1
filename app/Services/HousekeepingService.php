@@ -1,6 +1,4 @@
-<?php
-
-namespace App\Services;
+<?php namespace App\Services;
 
 use App\Models\HousekeepingAssignment;
 use App\Models\Room;
@@ -54,5 +52,24 @@ class HousekeepingService
     {
         $a->update(['assigned_to' => $userId]);
         return $a->fresh();
+    }
+
+    public function getRoomsNeedingCleaning(Carbon $date): Collection
+    {
+        $assignedRoomIds = HousekeepingAssignment::where('date', $date->toDateString())->pluck('room_id');
+        
+        return Room::whereIn('status', [Room::STATUS_CLEANING, Room::STATUS_OCCUPIED])
+            ->whereNotIn('id', $assignedRoomIds)
+            ->with(['roomType', 'latestBooking.guest'])
+            ->get();
+    }
+
+    public function getUnassignedRooms(Carbon $date): Collection
+    {
+        $assignedRoomIds = HousekeepingAssignment::where('date', $date->toDateString())->pluck('room_id');
+        return Room::whereNotIn('id', $assignedRoomIds)
+            ->with(['roomType'])
+            ->orderBy('number')
+            ->get();
     }
 }

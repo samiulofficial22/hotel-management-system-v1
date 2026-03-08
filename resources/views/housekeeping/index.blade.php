@@ -46,12 +46,15 @@
             <input type="hidden" name="date" value="{{ $date->format('Y-m-d') }}">
             <div class="col-md-3">
                 <label class="form-label small text-muted mb-0">Room</label>
-                <select name="room_id" class="form-select form-select-sm" required>
+                <select name="room_id" class="form-select form-select-sm @error('room_id') is-invalid @enderror" required>
                     <option value="">— Select room —</option>
-                    @foreach($rooms as $r)
+                    @foreach($unassignedRooms as $r)
                     <option value="{{ $r->id }}">{{ $r->number }} ({{ $r->roomType->name ?? '-' }})</option>
                     @endforeach
                 </select>
+                @error('room_id')
+                    <div class="invalid-feedback small">{{ $message }}</div>
+                @enderror
             </div>
             <div class="col-md-3">
                 <label class="form-label small text-muted mb-0">Assign to</label>
@@ -79,17 +82,79 @@
             <input type="hidden" name="date" value="{{ $date->format('Y-m-d') }}">
             <div class="col-md-4">
                 <label class="form-label small text-muted mb-0">Room</label>
-                <select name="room_id" class="form-select form-select-sm" required>
+                <select name="room_id" class="form-select form-select-sm @error('room_id') is-invalid @enderror" required>
                     <option value="">— {{ __('Select room') }} —</option>
-                    @foreach($rooms as $r)
+                    @foreach($unassignedRooms as $r)
                     <option value="{{ $r->id }}">{{ $r->number }} ({{ $r->roomType->name ?? '-' }})</option>
                     @endforeach
                 </select>
+                @error('room_id')
+                    <div class="invalid-feedback small">{{ $message }}</div>
+                @enderror
             </div>
             <div class="col-md-2">
                 <button type="submit" class="btn btn-success btn-sm w-100">Assign</button>
             </div>
         </form>
+    </div>
+</div>
+@endif
+
+@if($roomsNeedingAttention->isNotEmpty())
+<div class="card border-0 shadow-sm border-start border-4 border-warning mb-4">
+    <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+        <strong class="text-warning"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ __('Rooms Needing Attention / Cleaning (Unassigned)') }}</strong>
+        <span class="badge bg-warning text-dark">{{ $roomsNeedingAttention->count() }} {{ __('room(s)') }}</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+            <thead class="table-light small">
+                <tr>
+                    <th class="ps-3">Room</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Reference</th>
+                    <th class="text-end pe-3">Quick Assign</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($roomsNeedingAttention as $room)
+                <tr>
+                    <td class="fw-bold ps-3">{{ $room->number }}</td>
+                    <td class="small">{{ $room->roomType->name }}</td>
+                    <td>
+                        @php $rCfg = \App\Models\Room::statusBadgeConfig($room->status); @endphp
+                        <span class="badge {{ $rCfg['class'] }}">{{ $rCfg['label'] }}</span>
+                    </td>
+                    <td class="small text-muted">
+                        @if($room->status === \App\Models\Room::STATUS_OCCUPIED)
+                            {{ $room->latestBooking?->guest?->name ?? 'Guest' }} ({{ __('Occupied') }})
+                        @else
+                            {{ __('Needs Checkout Cleaning') }}
+                        @endif
+                    </td>
+                    <td class="text-end pe-3">
+                        <form method="POST" action="{{ route('housekeeping.assign') }}" class="d-flex justify-content-end gap-2">
+                            @csrf
+                            <input type="hidden" name="date" value="{{ $date->format('Y-m-d') }}">
+                            <input type="hidden" name="room_id" value="{{ $room->id }}">
+                            <select name="assigned_to" class="form-select form-select-sm w-auto" required @cannot('housekeeping.assign_others') disabled @endcannot>
+                                @can('housekeeping.assign_others')
+                                    <option value="">— Housekeeper —</option>
+                                    @foreach($users as $u)
+                                    <option value="{{ $u->id }}">{{ $u->name }}</option>
+                                    @endforeach
+                                @else
+                                    <option value="{{ auth()->id() }}">{{ auth()->user()->name }}</option>
+                                @endcan
+                            </select>
+                            <button type="submit" class="btn btn-success btn-sm">{{ __('Assign') }}</button>
+                        </form>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
     </div>
 </div>
 @endif

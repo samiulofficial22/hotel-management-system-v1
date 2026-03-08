@@ -58,18 +58,29 @@ class HousekeepingController extends Controller
         $assignments = $this->service->assignmentsForDate($date, $userId, $roomId);
         $rooms = $this->service->allRooms();
         $users = User::role('Housekeeper')->orderBy('name')->get(['id', 'name']);
-        return view('housekeeping.index', compact('assignments', 'rooms', 'date', 'users', 'roomId'));
+        $roomsNeedingAttention = $this->service->getRoomsNeedingCleaning($date);
+        $unassignedRooms = $this->service->getUnassignedRooms($date);
+        return view('housekeeping.index', compact('assignments', 'rooms', 'date', 'users', 'roomId', 'roomsNeedingAttention', 'unassignedRooms'));
     }
 
     public function assign(Request $request): RedirectResponse
     {
-        $rules = ['room_id' => 'required|exists:rooms,id', 'date' => 'required|date'];
+        $rules = [
+            'room_id' => [
+                'required',
+                'exists:rooms,id',
+                Rule::unique('housekeeping_assignments')->where('date', $request->date)
+            ],
+            'date' => 'required|date'
+        ];
         $canAssignOthers = auth()->user()?->can('housekeeping.assign_others');
         if ($canAssignOthers) {
             $housekeeperIds = User::role('Housekeeper')->pluck('id')->implode(',');
             $rules['assigned_to'] = ['required', 'exists:users,id', 'in:' . $housekeeperIds];
         }
-        $validated = $request->validate($rules);
+        $validated = $request->validate($rules, [
+            'room_id.unique' => __('This room is already assigned for the selected date.')
+        ]);
         if (! $canAssignOthers) {
             if ($request->filled('assigned_to') && (int) $request->assigned_to !== (int) auth()->id()) {
                 abort(403, __('You can only assign rooms to yourself.'));

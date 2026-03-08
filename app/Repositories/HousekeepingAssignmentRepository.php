@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Collection;
 
 class HousekeepingAssignmentRepository
 {
-    public function __construct(protected HousekeepingAssignment $model) {}
+    public function __construct(protected HousekeepingAssignment $model)
+    {
+    }
 
     public function forDate(Carbon $date, ?int $assignedTo = null, ?int $roomId = null): Collection
     {
@@ -42,13 +44,9 @@ class HousekeepingAssignmentRepository
 
     public function getOrCreateForRoom(int $roomId, Carbon $date, int $assignedTo): HousekeepingAssignment
     {
-        $a = $this->model->firstOrCreate(
-            ['room_id' => $roomId, 'date' => $date->toDateString()],
-            ['assigned_to' => $assignedTo, 'status' => HousekeepingAssignment::STATUS_PENDING]
+        return $this->model->firstOrCreate(
+        ['room_id' => $roomId, 'date' => $date->toDateString()],
+        ['assigned_to' => $assignedTo, 'status' => HousekeepingAssignment::STATUS_PENDING]
         );
-        if (!$a->wasRecentlyCreated) {
-            $a->update(['assigned_to' => $assignedTo]);
-        }
-        return $a->fresh();
     }
 }

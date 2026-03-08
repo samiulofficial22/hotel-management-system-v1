@@ -1,5 +1,4 @@
-<?php
-namespace App\Services;
+<?php namespace App\Services;
 
 use App\Models\Payment;
 use App\Models\PosActionLog;
