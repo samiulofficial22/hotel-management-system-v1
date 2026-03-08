@@ -70,7 +70,7 @@
                         <select name="room_id" class="form-select" required>
                             <option value="">-- Select Room --</option>
                             @foreach($rooms as $room)
-                                <option value="{{ $room->id }}">{{ $room->number }} ({{ $room->latestBooking->guest->name ?? 'N/A' }})</option>
+                                <option value="{{ $room->id }}">{{ $room->number }} ({{ $room->latestBooking->guest->full_name ?? 'N/A' }})</option>
                             @endforeach
                         </select>
                     </div>
