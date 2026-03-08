@@ -11,7 +11,8 @@ class LaundryOrder extends Model
 
     protected $fillable = [
         'room_id', 'guest_id', 'total_amount', 'status',
-        'payment_status', 'payment_method', 'notes', 'created_by'
+        'payment_status', 'payment_method', 'notes', 'created_by',
+        'order_date', 'order_time'
     ];
 
     public function room()

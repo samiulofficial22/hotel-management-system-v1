@@ -246,6 +246,7 @@ Route::middleware(['auth'])->group(function (): void {
             Route::resource('items', \App\Http\Controllers\LaundryItemController::class)->except(['show'])->middleware('permission:laundry.manage');
             Route::resource('orders', \App\Http\Controllers\LaundryOrderController::class);
             Route::post('orders/{order}/status', [\App\Http\Controllers\LaundryOrderController::class , 'updateStatus'])->name('orders.update-status');
+            Route::post('orders/{order}/payment', [\App\Http\Controllers\LaundryOrderController::class , 'updatePayment'])->name('orders.update-payment');
         }
         );
 
@@ -253,6 +254,7 @@ Route::middleware(['auth'])->group(function (): void {
             Route::resource('services', \App\Http\Controllers\SpaServiceController::class)->except(['show'])->middleware('permission:spa.manage');
             Route::resource('bookings', \App\Http\Controllers\SpaBookingController::class);
             Route::post('bookings/{booking}/status', [\App\Http\Controllers\SpaBookingController::class , 'updateStatus'])->name('bookings.update-status');
+            Route::post('bookings/{booking}/payment', [\App\Http\Controllers\SpaBookingController::class , 'updatePayment'])->name('bookings.update-payment');
         }
         );
 

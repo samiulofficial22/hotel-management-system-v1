@@ -21,6 +21,25 @@
                     <button type="submit" name="status" value="cancelled" class="dropdown-item text-danger">Cancelled</button>
                 </form>
             </li>
+            @if($booking->payment_status !== 'paid')
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form action="{{ route('spa.bookings.update-payment', $booking) }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="payment_status" value="paid">
+                        <button type="submit" class="dropdown-item text-success">Mark as Paid</button>
+                    </form>
+                </li>
+            @else
+                 <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form action="{{ route('spa.bookings.update-payment', $booking) }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="payment_status" value="unpaid">
+                        <button type="submit" class="dropdown-item text-warning">Mark as Unpaid</button>
+                    </form>
+                </li>
+            @endif
         </ul>
     </div>
 </div>

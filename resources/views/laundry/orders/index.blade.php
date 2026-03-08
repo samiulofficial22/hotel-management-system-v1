@@ -15,6 +15,7 @@
                         <th>Order #</th>
                         <th>Room</th>
                         <th>Guest</th>
+                        <th>Order Date/Time</th>
                         <th>Total Amount</th>
                         <th>Status</th>
                         <th>Payment</th>
@@ -27,6 +28,10 @@
                         <td class="fw-bold">#{{ $order->id }}</td>
                         <td>{{ $order->room->number }}</td>
                         <td>{{ $order->guest->full_name ?? 'N/A' }}</td>
+                        <td>
+                            <div class="small fw-bold text-dark">{{ $order->order_date ? date('d M, Y', strtotime($order->order_date)) : 'N/A' }}</div>
+                            <div class="small text-muted">{{ $order->order_time ? date('h:i A', strtotime($order->order_time)) : '' }}</div>
+                        </td>
                         <td>{{ money($order->total_amount) }}</td>
                         <td>
                             @php

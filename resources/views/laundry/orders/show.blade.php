@@ -22,6 +22,25 @@
                     <button type="submit" name="status" value="cancelled" class="dropdown-item text-danger">Cancelled</button>
                 </form>
             </li>
+            @if($order->payment_status !== 'paid')
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form action="{{ route('laundry.orders.update-payment', $order) }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="payment_status" value="paid">
+                        <button type="submit" class="dropdown-item text-success">Mark as Paid</button>
+                    </form>
+                </li>
+            @else
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form action="{{ route('laundry.orders.update-payment', $order) }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="payment_status" value="unpaid">
+                        <button type="submit" class="dropdown-item text-warning">Mark as Unpaid</button>
+                    </form>
+                </li>
+            @endif
         </ul>
     </div>
 </div>
@@ -74,6 +93,10 @@
                 <div class="mb-3">
                     <label class="text-muted small d-block">Room Number</label>
                     <span class="h5 mb-0">{{ $order->room->number }}</span>
+                </div>
+                <div class="mb-3">
+                    <label class="text-muted small d-block">Order Date & Time</label>
+                    <span class="h6 mb-0">{{ $order->order_date ? date('d M, Y', strtotime($order->order_date)) : 'N/A' }} at {{ $order->order_time ? date('h:i A', strtotime($order->order_time)) : '' }}</span>
                 </div>
                 <div class="mb-3">
                     <label class="text-muted small d-block">Guest Name</label>

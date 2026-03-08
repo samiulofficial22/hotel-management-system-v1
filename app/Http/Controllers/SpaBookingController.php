@@ -69,6 +69,13 @@ class SpaBookingController extends Controller
         return back()->with('success', 'Status updated');
     }
 
+    public function updatePayment(Request $request, SpaBooking $booking)
+    {
+        $request->validate(['payment_status' => 'required|in:unpaid,paid']);
+        $this->service->updatePaymentStatus($booking, $request->payment_status);
+        return back()->with('success', 'Payment status updated');
+    }
+
     public function destroy(SpaBooking $booking)
     {
         $this->repository->delete($booking);

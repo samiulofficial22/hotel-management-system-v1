@@ -72,6 +72,8 @@ class LaundryOrderController extends Controller
             'status' => $request->status,
             'payment_status' => $request->payment_status,
             'payment_method' => $request->payment_method,
+            'order_date' => now()->toDateString(),
+            'order_time' => now()->toTimeString(),
             'notes' => $request->notes,
             'created_by' => auth()->id()
         ];
@@ -92,6 +94,13 @@ class LaundryOrderController extends Controller
         $request->validate(['status' => 'required|in:pending,processing,ready,delivered,cancelled']);
         $this->service->updateOrderStatus($order, $request->status);
         return back()->with('success', 'Status updated');
+    }
+
+    public function updatePayment(Request $request, LaundryOrder $order)
+    {
+        $request->validate(['payment_status' => 'required|in:unpaid,paid']);
+        $this->service->updatePaymentStatus($order, $request->payment_status);
+        return back()->with('success', 'Payment status updated');
     }
 
     public function destroy(LaundryOrder $order)
