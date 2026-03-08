@@ -93,16 +93,20 @@ class RoomController extends Controller
         }
 
         // Fetch rooms that are active and not booked in the given date range
-        $rooms = Room::where('is_active', true)
-            ->whereNotIn('id', function ($q) use ($checkInDate, $checkOutDate) {
+        $roomsQuery = Room::where('is_active', true)
+            ->whereNotIn('id', function ($q) use ($checkInDate, $checkOutDate, $request) {
             $q->select('room_id')
                 ->from('bookings')
                 ->whereNotIn('status', [\App\Models\Booking::STATUS_CANCELLED, \App\Models\Booking::STATUS_NO_SHOW])
                 ->where('check_in_date', '<', $checkOutDate->toDateString())
                 ->where('check_out_date', '>', $checkInDate->toDateString());
-        })
-            ->with('roomType')
-            ->get();
+
+            if ($request->has('exclude_booking_id')) {
+                $q->where('id', '!=', $request->input('exclude_booking_id'));
+            }
+        });
+
+        $rooms = $roomsQuery->with('roomType')->get();
 
         $results = $rooms->map(function ($r) {
             return [
