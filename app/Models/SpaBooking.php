@@ -15,6 +15,10 @@ class SpaBooking extends Model
         'payment_method', 'notes', 'created_by'
     ];
 
+    protected $casts = [
+        'booking_date' => 'date',
+    ];
+
     public function room()
     {
         return $this->belongsTo(Room::class);

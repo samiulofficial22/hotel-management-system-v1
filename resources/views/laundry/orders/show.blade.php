@@ -77,7 +77,7 @@
                 </div>
                 <div class="mb-3">
                     <label class="text-muted small d-block">Guest Name</label>
-                    <span class="h5 mb-0">{{ $order->guest->name ?? 'N/A' }}</span>
+                    <span class="h5 mb-0">{{ $order->guest->full_name ?? 'N/A' }}</span>
                 </div>
                 <div class="mb-3">
                     <label class="text-muted small d-block">Status</label>

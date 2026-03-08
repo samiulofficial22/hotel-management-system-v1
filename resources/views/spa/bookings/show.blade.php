@@ -51,7 +51,7 @@
                 <h5 class="mb-3 border-bottom pb-2">Guest & Room</h5>
                 <div class="mb-3">
                     <label class="text-muted small d-block">Guest Name</label>
-                    <span class="h6 mb-0">{{ $booking->guest->name ?? 'N/A' }}</span>
+                    <span class="h6 mb-0">{{ $booking->guest->full_name ?? 'N/A' }}</span>
                 </div>
                 <div class="mb-3">
                     <label class="text-muted small d-block">Room Number</label>

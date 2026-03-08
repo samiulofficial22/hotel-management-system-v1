@@ -56,6 +56,11 @@ class Room extends Model
         return $this->hasMany(Booking::class);
     }
 
+    public function latestBooking()
+    {
+        return $this->hasOne(Booking::class)->latestOfMany();
+    }
+
     /** @return HasMany<HousekeepingAssignment, $this> */
     public function housekeepingAssignments(): HasMany
     {

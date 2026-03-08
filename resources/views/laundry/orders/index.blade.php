@@ -26,7 +26,7 @@
                     <tr>
                         <td class="fw-bold">#{{ $order->id }}</td>
                         <td>{{ $order->room->number }}</td>
-                        <td>{{ $order->guest->name ?? 'N/A' }}</td>
+                        <td>{{ $order->guest->full_name ?? 'N/A' }}</td>
                         <td>{{ money($order->total_amount) }}</td>
                         <td>
                             @php
