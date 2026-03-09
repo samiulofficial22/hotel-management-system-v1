@@ -7,8 +7,12 @@
         <p class="text-muted small mb-0">Period: <strong>{{ $from->format('d M Y') }}</strong> — <strong>{{ $to->format('d M Y') }}</strong></p>
     </div>
     <div class="d-flex gap-2">
+        <a href="{{ route('accounts.reports.payroll-cost.pdf-preview', ['from' => $from->format('Y-m-d'), 'to' => $to->format('Y-m-d')]) }}"
+           class="btn btn-outline-primary btn-sm" target="_blank">
+            <i class="fas fa-print me-1"></i> Preview PDF
+        </a>
         <a href="{{ route('accounts.reports.payroll-cost.pdf', ['from' => $from->format('Y-m-d'), 'to' => $to->format('Y-m-d')]) }}"
-           class="btn btn-danger btn-sm" target="_blank">
+           class="btn btn-danger btn-sm">
             <i class="fas fa-file-pdf me-1"></i> Download PDF
         </a>
         <a href="{{ route('accounts.reports.index') }}" class="btn btn-outline-secondary btn-sm">

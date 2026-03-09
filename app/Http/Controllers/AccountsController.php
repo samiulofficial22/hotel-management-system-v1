@@ -95,6 +95,9 @@ class AccountsController extends Controller
         return view('accounts.reports-index');
     }
 
+    // =========================================================
+    // Profit & Loss
+    // =========================================================
     public function reportProfitLoss(Request $request): View
     {
         $from = $request->filled('from') ? Carbon::parse($request->from) : now()->startOfMonth();
@@ -121,6 +124,23 @@ class AccountsController extends Controller
         return $pdf->download('profit-loss-' . $from->format('Y-m-d') . '-to-' . $to->format('Y-m-d') . '.pdf');
     }
 
+    public function reportProfitLossPdfPreview(Request $request): Response
+    {
+        $from = $request->filled('from') ? Carbon::parse($request->from) : now()->startOfMonth();
+        $to = $request->filled('to') ? Carbon::parse($request->to) : now()->endOfMonth();
+        $revenue = $this->ledgerService->totalRevenue($from, $to);
+        $expense = $this->ledgerService->totalExpense($from, $to);
+        $profit = $revenue - $expense;
+        $revenueBreakdown = $this->ledgerService->revenueByAccount($from, $to);
+        $expenseBreakdown = $this->ledgerService->expenseByAccount($from, $to);
+        $pdf = Pdf::loadView('accounts.pdf.profit-loss', compact('from', 'to', 'revenue', 'expense', 'profit', 'revenueBreakdown', 'expenseBreakdown'))
+            ->setPaper('a4', 'portrait');
+        return $pdf->stream('profit-loss-' . $from->format('Y-m-d') . '-to-' . $to->format('Y-m-d') . '.pdf');
+    }
+
+    // =========================================================
+    // Expense
+    // =========================================================
     public function reportExpense(Request $request): View
     {
         $from = $request->filled('from') ? Carbon::parse($request->from) : now()->startOfMonth();
@@ -141,6 +161,20 @@ class AccountsController extends Controller
         return $pdf->download('expense-report-' . $from->format('Y-m-d') . '-to-' . $to->format('Y-m-d') . '.pdf');
     }
 
+    public function reportExpensePdfPreview(Request $request): Response
+    {
+        $from = $request->filled('from') ? Carbon::parse($request->from) : now()->startOfMonth();
+        $to = $request->filled('to') ? Carbon::parse($request->to) : now()->endOfMonth();
+        $breakdown = $this->ledgerService->expenseByAccount($from, $to);
+        $total = array_sum(array_column($breakdown, 'amount'));
+        $pdf = Pdf::loadView('accounts.pdf.expense', compact('from', 'to', 'breakdown', 'total'))
+            ->setPaper('a4', 'portrait');
+        return $pdf->stream('expense-report-' . $from->format('Y-m-d') . '-to-' . $to->format('Y-m-d') . '.pdf');
+    }
+
+    // =========================================================
+    // Daily Cash
+    // =========================================================
     public function reportDailyCash(Request $request): View
     {
         $from = $request->filled('from') ? Carbon::parse($request->from) : now()->startOfMonth();
@@ -159,6 +193,19 @@ class AccountsController extends Controller
         return $pdf->download('daily-cash-' . $from->format('Y-m-d') . '-to-' . $to->format('Y-m-d') . '.pdf');
     }
 
+    public function reportDailyCashPdfPreview(Request $request): Response
+    {
+        $from = $request->filled('from') ? Carbon::parse($request->from) : now()->startOfMonth();
+        $to = $request->filled('to') ? Carbon::parse($request->to) : now()->endOfMonth();
+        $daily = $this->ledgerService->dailyCashSummary($from, $to);
+        $pdf = Pdf::loadView('accounts.pdf.daily-cash', compact('from', 'to', 'daily'))
+            ->setPaper('a4', 'landscape');
+        return $pdf->stream('daily-cash-' . $from->format('Y-m-d') . '-to-' . $to->format('Y-m-d') . '.pdf');
+    }
+
+    // =========================================================
+    // Payroll Cost
+    // =========================================================
     public function reportPayrollCost(Request $request): View
     {
         $from = $request->filled('from') ? Carbon::parse($request->from)->startOfDay() : now()->copy()->startOfMonth();
@@ -187,6 +234,24 @@ class AccountsController extends Controller
         return $pdf->download('payroll-cost-' . $from->format('Y-m-d') . '-to-' . $to->format('Y-m-d') . '.pdf');
     }
 
+    public function reportPayrollCostPdfPreview(Request $request): Response
+    {
+        $from = $request->filled('from') ? Carbon::parse($request->from)->startOfDay() : now()->copy()->startOfMonth();
+        $to = $request->filled('to') ? Carbon::parse($request->to)->endOfDay() : now()->copy()->endOfMonth();
+        $runs = PayrollRun::with('items.employee')->where('status', PayrollRun::STATUS_PAID)
+            ->whereNotNull('paid_at')
+            ->whereBetween('paid_at', [$from, $to])
+            ->orderByDesc('paid_at')
+            ->get();
+        $totalCost = $runs->sum(fn ($r) => $r->items->sum('net_salary'));
+        $pdf = Pdf::loadView('accounts.pdf.payroll-cost', compact('from', 'to', 'runs', 'totalCost'))
+            ->setPaper('a4', 'portrait');
+        return $pdf->stream('payroll-cost-' . $from->format('Y-m-d') . '-to-' . $to->format('Y-m-d') . '.pdf');
+    }
+
+    // =========================================================
+    // Destroy
+    // =========================================================
     public function destroy(ChartOfAccount $account): RedirectResponse
     {
         try {

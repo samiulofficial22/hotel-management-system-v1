@@ -2,109 +2,182 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Profit & Loss Report</title>
+    <title>Profit &amp; Loss Report</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 11px; color: #1a1a2e; background: #fff; }
+        body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 11px; color: #111; background: #fff; }
 
-        .page-header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color: #fff; padding: 28px 32px 22px; margin-bottom: 24px; }
-        .page-header .hotel-name { font-size: 20px; font-weight: 700; letter-spacing: 1px; margin-bottom: 4px; }
-        .page-header .report-title { font-size: 14px; color: #a0c4ff; font-weight: 600; margin-bottom: 2px; }
-        .page-header .report-period { font-size: 10px; color: #cddeff; }
+        /* ── HEADER ── */
+        .page-header {
+            border-bottom: 3px solid #111;
+            padding: 20px 32px 16px;
+            margin-bottom: 20px;
+            display: table;
+            width: 100%;
+        }
+        .header-left { display: table-cell; vertical-align: middle; width: 70%; }
+        .header-right { display: table-cell; vertical-align: middle; text-align: right; width: 30%; }
 
-        .content { padding: 0 32px 24px; }
+        .hotel-name   { font-size: 22px; font-weight: 700; letter-spacing: 1.5px; color: #000; text-transform: uppercase; }
+        .hotel-tagline{ font-size: 9px; color: #555; letter-spacing: 0.5px; margin-top: 2px; }
+        .hotel-address{ font-size: 8.5px; color: #666; margin-top: 3px; }
 
+        .report-badge {
+            background: #111;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 6px 14px;
+            display: inline-block;
+            border-radius: 2px;
+        }
+        .report-period { font-size: 9px; color: #555; margin-top: 5px; }
+
+        /* ── SUMMARY CARDS ── */
         .summary-grid { display: table; width: 100%; margin-bottom: 22px; border-collapse: separate; border-spacing: 8px; }
-        .summary-card { display: table-cell; width: 33%; background: #f8f9fc; border-radius: 8px; padding: 14px 16px; border-left: 4px solid #ccc; vertical-align: top; }
-        .summary-card.revenue { border-left-color: #22c55e; }
-        .summary-card.expense { border-left-color: #ef4444; }
-        .summary-card.profit-pos { border-left-color: #3b82f6; }
-        .summary-card.profit-neg { border-left-color: #f97316; }
-        .summary-card .label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; color: #888; margin-bottom: 6px; }
-        .summary-card .amount { font-size: 18px; font-weight: 700; }
-        .summary-card.revenue .amount { color: #16a34a; }
-        .summary-card.expense .amount { color: #dc2626; }
-        .summary-card.profit-pos .amount { color: #2563eb; }
-        .summary-card.profit-neg .amount { color: #ea580c; }
+        .summary-card { display: table-cell; width: 33%; background: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; padding: 12px 16px; border-top: 3px solid #111; vertical-align: top; }
+        .summary-card .label  { font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.5px; color: #777; margin-bottom: 6px; }
+        .summary-card .amount { font-size: 18px; font-weight: 700; color: #111; }
+        .summary-card .sub    { font-size: 8px; color: #999; margin-top: 3px; }
 
-        .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #555; margin: 18px 0 8px; padding-bottom: 5px; border-bottom: 2px solid #e5e7eb; }
+        /* ── SECTION TITLE ── */
+        .section-title {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.8px; color: #111; margin: 18px 0 8px;
+            padding-bottom: 5px; border-bottom: 2px solid #111;
+        }
 
+        /* ── TABLE ── */
         table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
-        thead tr { background: #1e293b; color: #fff; }
-        thead th { padding: 8px 12px; font-size: 10px; font-weight: 600; text-align: left; }
+        thead tr { background: #111; color: #fff; }
+        thead th { padding: 8px 12px; font-size: 9.5px; font-weight: 700; text-align: left; }
         thead th.r { text-align: right; }
-        tbody tr:nth-child(even) { background: #f8fafc; }
-        tbody tr:hover { background: #f1f5f9; }
-        tbody td { padding: 7px 12px; border-bottom: 1px solid #e5e7eb; font-size: 10px; }
+        tbody tr:nth-child(even) { background: #f9f9f9; }
+        tbody td { padding: 7px 12px; border-bottom: 1px solid #e0e0e0; font-size: 10px; color: #222; }
         tbody td.r { text-align: right; font-weight: 600; }
-        tfoot tr { background: #1e293b; color: #fff; }
+        tfoot tr { background: #333; color: #fff; }
         tfoot td { padding: 8px 12px; font-weight: 700; font-size: 10px; }
         tfoot td.r { text-align: right; }
 
-        .footer { margin-top: 28px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 9px; color: #aaa; display: flex; justify-content: space-between; }
+        /* ── FOOTER ── */
+        .doc-footer {
+            margin-top: 28px; padding-top: 8px;
+            border-top: 1px solid #ccc;
+            font-size: 8.5px; color: #888;
+            display: table; width: 100%;
+        }
+        .doc-footer .fl { display: table-cell; }
+        .doc-footer .fr { display: table-cell; text-align: right; }
+
+        .content { padding: 0 32px 24px; }
+
+        .watermark {
+            font-size: 8px; color: #bbb; text-transform: uppercase;
+            letter-spacing: 2px; margin-top: 4px;
+        }
     </style>
 </head>
 <body>
+
+    {{-- ── PROFESSIONAL HEADER ── --}}
     <div class="page-header">
-        <div class="hotel-name">🏨 Hotel Management System</div>
-        <div class="report-title">Profit & Loss Report</div>
-        <div class="report-period">Period: {{ $from->format('d M Y') }} — {{ $to->format('d M Y') }}</div>
+        <div class="header-left">
+            <div class="hotel-name">🏨 {{ config('app.name', 'Hotel Management') }}</div>
+            <div class="hotel-tagline">Hospitality &bull; Excellence &bull; Comfort</div>
+            <div class="watermark">Official Financial Document</div>
+        </div>
+        <div class="header-right">
+            <div class="report-badge">Profit &amp; Loss Report</div>
+            <div class="report-period">
+                Period: <strong>{{ $from->format('d M Y') }}</strong> &mdash; <strong>{{ $to->format('d M Y') }}</strong>
+            </div>
+            <div class="report-period" style="margin-top:3px;">
+                Generated: {{ now()->format('d M Y, h:i A') }}
+            </div>
+        </div>
     </div>
 
     <div class="content">
+
+        {{-- SUMMARY --}}
         <table class="summary-grid" style="border-spacing:8px;">
             <tr>
-                <td class="summary-card revenue">
+                <td class="summary-card">
                     <div class="label">Total Revenue</div>
-                    <div class="amount" style="color:#16a34a;">{{ money($revenue) }}</div>
+                    <div class="amount">{{ money($revenue) }}</div>
+                    <div class="sub">Gross income for the period</div>
                 </td>
-                <td class="summary-card expense">
+                <td class="summary-card">
                     <div class="label">Total Expense</div>
-                    <div class="amount" style="color:#dc2626;">{{ money($expense) }}</div>
+                    <div class="amount">{{ money($expense) }}</div>
+                    <div class="sub">Total costs incurred</div>
                 </td>
-                <td class="{{ $profit >= 0 ? 'summary-card profit-pos' : 'summary-card profit-neg' }}">
+                <td class="summary-card">
                     <div class="label">Net {{ $profit >= 0 ? 'Profit' : 'Loss' }}</div>
-                    <div class="amount" style="color:{{ $profit >= 0 ? '#2563eb' : '#ea580c' }};">{{ money(abs($profit)) }}</div>
+                    <div class="amount">{{ money(abs($profit)) }}</div>
+                    <div class="sub">{{ $profit >= 0 ? 'Revenue exceeds expenses' : 'Expenses exceed revenue' }}</div>
                 </td>
             </tr>
         </table>
 
-        <div class="section-title">📈 Revenue Breakdown</div>
+        {{-- REVENUE --}}
+        <div class="section-title">Revenue Breakdown</div>
         @if(!empty($revenueBreakdown))
         <table>
-            <thead><tr><th>Account</th><th class="r">Amount</th></tr></thead>
+            <thead><tr><th>#</th><th>Account</th><th class="r">Amount</th></tr></thead>
             <tbody>
-                @foreach($revenueBreakdown as $rb)
-                <tr><td>{{ $rb['name'] }}</td><td class="r" style="color:#16a34a;">{{ money($rb['amount']) }}</td></tr>
+                @foreach($revenueBreakdown as $i => $rb)
+                <tr>
+                    <td style="color:#999;">{{ $i + 1 }}</td>
+                    <td>{{ $rb['name'] }}</td>
+                    <td class="r">{{ money($rb['amount']) }}</td>
+                </tr>
                 @endforeach
             </tbody>
-            <tfoot><tr><td>Total Revenue</td><td class="r">{{ money($revenue) }}</td></tr></tfoot>
+            <tfoot><tr><td colspan="2">Total Revenue</td><td class="r">{{ money($revenue) }}</td></tr></tfoot>
         </table>
         @else
         <p style="color:#aaa; font-size:10px; padding:8px 0;">No revenue recorded in this period.</p>
         @endif
 
-        <div class="section-title">📉 Expense Breakdown</div>
+        {{-- EXPENSE --}}
+        <div class="section-title">Expense Breakdown</div>
         @if(!empty($expenseBreakdown))
         <table>
-            <thead><tr><th>Account</th><th class="r">Amount</th></tr></thead>
+            <thead><tr><th>#</th><th>Account</th><th class="r">Amount</th></tr></thead>
             <tbody>
-                @foreach($expenseBreakdown as $eb)
-                <tr><td>{{ $eb['name'] }}</td><td class="r" style="color:#dc2626;">{{ money($eb['amount']) }}</td></tr>
+                @foreach($expenseBreakdown as $i => $eb)
+                <tr>
+                    <td style="color:#999;">{{ $i + 1 }}</td>
+                    <td>{{ $eb['name'] }}</td>
+                    <td class="r">{{ money($eb['amount']) }}</td>
+                </tr>
                 @endforeach
             </tbody>
-            <tfoot><tr><td>Total Expense</td><td class="r">{{ money($expense) }}</td></tr></tfoot>
+            <tfoot><tr><td colspan="2">Total Expense</td><td class="r">{{ money($expense) }}</td></tr></tfoot>
         </table>
         @else
         <p style="color:#aaa; font-size:10px; padding:8px 0;">No expenses recorded in this period.</p>
         @endif
-    </div>
 
-    <div class="content">
-        <div class="footer">
-            <span>Generated: {{ now()->format('d M Y, h:i A') }}</span>
-            <span>Hotel Management System — Confidential</span>
+        {{-- NET SUMMARY ROW --}}
+        <table style="margin-top:14px;">
+            <tfoot>
+                <tr>
+                    <td style="font-weight:700; font-size:11px;">Net {{ $profit >= 0 ? 'Profit' : 'Loss' }}</td>
+                    <td class="r" style="font-size:13px;">{{ money(abs($profit)) }}</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        {{-- FOOTER --}}
+        <div class="doc-footer">
+            <div class="fl">{{ config('app.name', 'Hotel Management') }} &mdash; Confidential Financial Report</div>
+            <div class="fr">Page 1 of 1</div>
         </div>
+
     </div>
 </body>
 </html>

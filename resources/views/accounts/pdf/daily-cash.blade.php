@@ -5,62 +5,110 @@
     <title>Daily Cash Summary</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 10px; color: #1a1a2e; background: #fff; }
-        .page-header { background: linear-gradient(135deg, #065f46 0%, #047857 100%); color: #fff; padding: 24px 28px 18px; margin-bottom: 20px; }
-        .page-header .hotel-name { font-size: 18px; font-weight: 700; letter-spacing: 1px; margin-bottom: 4px; }
-        .page-header .report-title { font-size: 13px; color: #a7f3d0; font-weight: 600; margin-bottom: 2px; }
-        .page-header .report-period { font-size: 9px; color: #d1fae5; }
+        body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 10px; color: #111; background: #fff; }
+
+        .page-header {
+            border-bottom: 3px solid #111;
+            padding: 18px 28px 14px;
+            margin-bottom: 18px;
+            display: table;
+            width: 100%;
+        }
+        .header-left { display: table-cell; vertical-align: middle; width: 70%; }
+        .header-right { display: table-cell; vertical-align: middle; text-align: right; width: 30%; }
+
+        .hotel-name    { font-size: 20px; font-weight: 700; letter-spacing: 1.5px; color: #000; text-transform: uppercase; }
+        .hotel-tagline { font-size: 8.5px; color: #555; letter-spacing: 0.5px; margin-top: 2px; }
+        .watermark     { font-size: 7.5px; color: #bbb; text-transform: uppercase; letter-spacing: 2px; margin-top: 4px; }
+
+        .report-badge  {
+            background: #111; color: #fff;
+            font-size: 10px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px;
+            padding: 5px 12px; display: inline-block; border-radius: 2px;
+        }
+        .report-period { font-size: 8.5px; color: #555; margin-top: 5px; }
+
         .content { padding: 0 28px 24px; }
-        .totals-row { background: #f0fdf4; border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; display: table; width: 100%; }
+
+        .totals-row { background: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; padding: 10px 14px; margin-bottom: 16px; display: table; width: 100%; }
         .totals-cell { display: table-cell; padding: 0 12px; text-align: center; }
-        .totals-cell .label { font-size: 8px; text-transform: uppercase; color: #888; margin-bottom: 4px; }
-        .totals-cell .val { font-size: 14px; font-weight: 700; }
-        .val.green { color: #16a34a; }
-        .val.red { color: #dc2626; }
-        .val.blue { color: #2563eb; }
+        .totals-cell:first-child { padding-left: 0; }
+        .totals-cell .label { font-size: 7.5px; text-transform: uppercase; color: #888; margin-bottom: 4px; letter-spacing: 0.5px; }
+        .totals-cell .val   { font-size: 13px; font-weight: 700; color: #111; }
+        .totals-sep { display: table-cell; border-left: 1px solid #ddd; }
+
+        .section-title {
+            font-size: 9.5px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.8px; color: #111; margin: 0 0 10px;
+            padding-bottom: 4px; border-bottom: 2px solid #111;
+        }
+
         table { width: 100%; border-collapse: collapse; }
-        thead tr { background: #065f46; color: #fff; }
-        thead th { padding: 8px 10px; font-size: 9px; font-weight: 600; text-align: left; }
+        thead tr { background: #111; color: #fff; }
+        thead th { padding: 8px 10px; font-size: 9px; font-weight: 700; text-align: left; }
         thead th.r { text-align: right; }
-        tbody tr:nth-child(even) { background: #f0fdf4; }
-        tbody td { padding: 7px 10px; border-bottom: 1px solid #d1fae5; font-size: 9px; }
+        tbody tr:nth-child(even) { background: #f9f9f9; }
+        tbody td { padding: 7px 10px; border-bottom: 1px solid #e0e0e0; font-size: 9px; color: #222; }
         tbody td.r { text-align: right; font-weight: 600; }
-        tbody td.pos { color: #16a34a; }
-        tbody td.neg { color: #dc2626; }
-        tbody td.net-pos { color: #2563eb; }
-        tbody td.net-neg { color: #ea580c; }
-        tfoot tr { background: #064e3b; color: #fff; }
+        tfoot tr { background: #333; color: #fff; }
         tfoot td { padding: 8px 10px; font-weight: 700; font-size: 9px; }
         tfoot td.r { text-align: right; }
-        .footer { margin-top: 24px; padding-top: 8px; border-top: 1px solid #e5e7eb; font-size: 8px; color: #aaa; }
+
+        .doc-footer {
+            margin-top: 22px; padding-top: 7px;
+            border-top: 1px solid #ccc;
+            font-size: 8px; color: #888;
+            display: table; width: 100%;
+        }
+        .doc-footer .fl { display: table-cell; }
+        .doc-footer .fr { display: table-cell; text-align: right; }
     </style>
 </head>
 <body>
+
     <div class="page-header">
-        <div class="hotel-name">🏨 Hotel Management System</div>
-        <div class="report-title">Daily Cash Summary</div>
-        <div class="report-period">Period: {{ $from->format('d M Y') }} — {{ $to->format('d M Y') }}</div>
+        <div class="header-left">
+            <div class="hotel-name">🏨 {{ config('app.name', 'Hotel Management') }}</div>
+            <div class="hotel-tagline">Hospitality &bull; Excellence &bull; Comfort</div>
+            <div class="watermark">Official Financial Document</div>
+        </div>
+        <div class="header-right">
+            <div class="report-badge">Daily Cash Summary</div>
+            <div class="report-period">
+                Period: <strong>{{ $from->format('d M Y') }}</strong> &mdash; <strong>{{ $to->format('d M Y') }}</strong>
+            </div>
+            <div class="report-period" style="margin-top:3px;">
+                Generated: {{ now()->format('d M Y, h:i A') }}
+            </div>
+        </div>
     </div>
+
     <div class="content">
         @php
             $totalIn  = array_sum(array_column($daily, 'cashIn'));
             $totalOut = array_sum(array_column($daily, 'cashOut'));
             $netTotal = $totalIn - $totalOut;
         @endphp
+
         <div class="totals-row">
             <div class="totals-cell">
                 <div class="label">Total Cash In</div>
-                <div class="val green">{{ money($totalIn) }}</div>
+                <div class="val">{{ money($totalIn) }}</div>
             </div>
-            <div class="totals-cell" style="border-left:1px solid #d1fae5; border-right:1px solid #d1fae5;">
+            <div class="totals-sep"></div>
+            <div class="totals-cell">
                 <div class="label">Total Cash Out</div>
-                <div class="val red">{{ money($totalOut) }}</div>
+                <div class="val">{{ money($totalOut) }}</div>
             </div>
+            <div class="totals-sep"></div>
             <div class="totals-cell">
                 <div class="label">Net Movement</div>
-                <div class="val {{ $netTotal >= 0 ? 'blue' : 'red' }}">{{ money($netTotal) }}</div>
+                <div class="val">{{ $netTotal >= 0 ? '+' : '' }}{{ money($netTotal) }}</div>
             </div>
         </div>
+
+        <div class="section-title">Daily Breakdown</div>
 
         @if(!empty($daily))
         <table>
@@ -68,8 +116,8 @@
                 <tr>
                     <th>Date</th>
                     <th class="r">Opening</th>
-                    <th class="r">Cash In</th>
-                    <th class="r">Cash Out</th>
+                    <th class="r">Cash In (+)</th>
+                    <th class="r">Cash Out (-)</th>
                     <th class="r">Net</th>
                     <th class="r">Closing</th>
                 </tr>
@@ -79,21 +127,21 @@
                 <tr>
                     <td><strong>{{ \Carbon\Carbon::parse($date)->format('d M Y') }}</strong></td>
                     <td class="r">{{ money($data['opening']) }}</td>
-                    <td class="r pos">+{{ money($data['cashIn']) }}</td>
-                    <td class="r neg">-{{ money($data['cashOut']) }}</td>
-                    <td class="r {{ $data['net'] >= 0 ? 'net-pos' : 'net-neg' }}">{{ $data['net'] >= 0 ? '+' : '' }}{{ money($data['net']) }}</td>
+                    <td class="r">+{{ money($data['cashIn']) }}</td>
+                    <td class="r">-{{ money($data['cashOut']) }}</td>
+                    <td class="r"><strong>{{ $data['net'] >= 0 ? '+' : '' }}{{ money($data['net']) }}</strong></td>
                     <td class="r"><strong>{{ money($data['closing']) }}</strong></td>
                 </tr>
                 @endforeach
             </tbody>
             <tfoot>
                 <tr>
-                    <td>PERIOD TOTALS</td>
-                    <td class="r">—</td>
+                    <td>Period Totals</td>
+                    <td class="r">&mdash;</td>
                     <td class="r">+{{ money($totalIn) }}</td>
                     <td class="r">-{{ money($totalOut) }}</td>
                     <td class="r">{{ $netTotal >= 0 ? '+' : '' }}{{ money($netTotal) }}</td>
-                    <td class="r">—</td>
+                    <td class="r">&mdash;</td>
                 </tr>
             </tfoot>
         </table>
@@ -101,8 +149,9 @@
         <p style="color:#aaa; padding:16px 0;">No cash movement found for the selected period.</p>
         @endif
 
-        <div class="footer">
-            Generated: {{ now()->format('d M Y, h:i A') }} &nbsp;|&nbsp; Hotel Management System — Confidential
+        <div class="doc-footer">
+            <div class="fl">{{ config('app.name', 'Hotel Management') }} &mdash; Confidential Financial Report</div>
+            <div class="fr">Page 1 of 1</div>
         </div>
     </div>
 </body>

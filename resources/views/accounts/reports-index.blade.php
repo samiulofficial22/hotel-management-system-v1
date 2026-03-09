@@ -38,17 +38,23 @@
                             <input type="date" name="to" class="form-control form-control-sm" value="{{ now()->format('Y-m-d') }}">
                         </div>
                         <div class="col-12 d-flex gap-2 mt-1">
-                            <button type="submit" class="btn btn-primary btn-sm w-100">
-                                <i class="fas fa-eye me-1"></i> View Report
+                            <button type="submit" class="btn btn-primary btn-sm flex-fill">
+                                <i class="fas fa-eye me-1"></i> View
                             </button>
-                            <button type="submit" form="pl-pdf-form" class="btn btn-outline-danger btn-sm w-100">
-                                <i class="fas fa-file-pdf me-1"></i> Download PDF
+                            <button type="submit" form="pl-pdf-preview-form" class="btn btn-outline-secondary btn-sm flex-fill">
+                                <i class="fas fa-print me-1"></i> Preview PDF
+                            </button>
+                            <button type="submit" form="pl-pdf-form" class="btn btn-outline-danger btn-sm flex-fill">
+                                <i class="fas fa-file-pdf me-1"></i> Download
                             </button>
                         </div>
                     </div>
                 </form>
-                <form id="pl-pdf-form" method="GET" action="{{ route('accounts.reports.profit-loss.pdf') }}"
-                      onsubmit="syncDates(this, 'form[action=\'{{ route('accounts.reports.profit-loss') }}\']')">
+                <form id="pl-pdf-form" method="GET" action="{{ route('accounts.reports.profit-loss.pdf') }}">
+                    <input type="hidden" name="from">
+                    <input type="hidden" name="to">
+                </form>
+                <form id="pl-pdf-preview-form" method="GET" action="{{ route('accounts.reports.profit-loss.pdf-preview') }}" target="_blank">
                     <input type="hidden" name="from">
                     <input type="hidden" name="to">
                 </form>
@@ -81,16 +87,23 @@
                             <input type="date" name="to" class="form-control form-control-sm" value="{{ now()->format('Y-m-d') }}">
                         </div>
                         <div class="col-12 d-flex gap-2 mt-1">
-                            <button type="submit" class="btn btn-sm w-100" style="background:#7c3aed;color:#fff;">
-                                <i class="fas fa-eye me-1"></i> View Report
+                            <button type="submit" class="btn btn-sm flex-fill" style="background:#7c3aed;color:#fff;">
+                                <i class="fas fa-eye me-1"></i> View
                             </button>
-                            <button type="submit" form="exp-pdf-form" class="btn btn-outline-danger btn-sm w-100">
-                                <i class="fas fa-file-pdf me-1"></i> Download PDF
+                            <button type="submit" form="exp-pdf-preview-form" class="btn btn-outline-secondary btn-sm flex-fill">
+                                <i class="fas fa-print me-1"></i> Preview PDF
+                            </button>
+                            <button type="submit" form="exp-pdf-form" class="btn btn-outline-danger btn-sm flex-fill">
+                                <i class="fas fa-file-pdf me-1"></i> Download
                             </button>
                         </div>
                     </div>
                 </form>
                 <form id="exp-pdf-form" method="GET" action="{{ route('accounts.reports.expense.pdf') }}">
+                    <input type="hidden" name="from">
+                    <input type="hidden" name="to">
+                </form>
+                <form id="exp-pdf-preview-form" method="GET" action="{{ route('accounts.reports.expense.pdf-preview') }}" target="_blank">
                     <input type="hidden" name="from">
                     <input type="hidden" name="to">
                 </form>
@@ -123,16 +136,23 @@
                             <input type="date" name="to" class="form-control form-control-sm" value="{{ now()->format('Y-m-d') }}">
                         </div>
                         <div class="col-12 d-flex gap-2 mt-1">
-                            <button type="submit" class="btn btn-sm w-100" style="background:#059669;color:#fff;">
-                                <i class="fas fa-eye me-1"></i> View Report
+                            <button type="submit" class="btn btn-sm flex-fill" style="background:#059669;color:#fff;">
+                                <i class="fas fa-eye me-1"></i> View
                             </button>
-                            <button type="submit" form="cash-pdf-form" class="btn btn-outline-danger btn-sm w-100">
-                                <i class="fas fa-file-pdf me-1"></i> Download PDF
+                            <button type="submit" form="cash-pdf-preview-form" class="btn btn-outline-secondary btn-sm flex-fill">
+                                <i class="fas fa-print me-1"></i> Preview PDF
+                            </button>
+                            <button type="submit" form="cash-pdf-form" class="btn btn-outline-danger btn-sm flex-fill">
+                                <i class="fas fa-file-pdf me-1"></i> Download
                             </button>
                         </div>
                     </div>
                 </form>
                 <form id="cash-pdf-form" method="GET" action="{{ route('accounts.reports.daily-cash.pdf') }}">
+                    <input type="hidden" name="from">
+                    <input type="hidden" name="to">
+                </form>
+                <form id="cash-pdf-preview-form" method="GET" action="{{ route('accounts.reports.daily-cash.pdf-preview') }}" target="_blank">
                     <input type="hidden" name="from">
                     <input type="hidden" name="to">
                 </form>
@@ -165,16 +185,23 @@
                             <input type="date" name="to" class="form-control form-control-sm" value="{{ now()->format('Y-m-d') }}">
                         </div>
                         <div class="col-12 d-flex gap-2 mt-1">
-                            <button type="submit" class="btn btn-sm w-100" style="background:#0284c7;color:#fff;">
-                                <i class="fas fa-eye me-1"></i> View Report
+                            <button type="submit" class="btn btn-sm flex-fill" style="background:#0284c7;color:#fff;">
+                                <i class="fas fa-eye me-1"></i> View
                             </button>
-                            <button type="submit" form="pay-pdf-form" class="btn btn-outline-danger btn-sm w-100">
-                                <i class="fas fa-file-pdf me-1"></i> Download PDF
+                            <button type="submit" form="pay-pdf-preview-form" class="btn btn-outline-secondary btn-sm flex-fill">
+                                <i class="fas fa-print me-1"></i> Preview PDF
+                            </button>
+                            <button type="submit" form="pay-pdf-form" class="btn btn-outline-danger btn-sm flex-fill">
+                                <i class="fas fa-file-pdf me-1"></i> Download
                             </button>
                         </div>
                     </div>
                 </form>
                 <form id="pay-pdf-form" method="GET" action="{{ route('accounts.reports.payroll-cost.pdf') }}">
+                    <input type="hidden" name="from">
+                    <input type="hidden" name="to">
+                </form>
+                <form id="pay-pdf-preview-form" method="GET" action="{{ route('accounts.reports.payroll-cost.pdf-preview') }}" target="_blank">
                     <input type="hidden" name="from">
                     <input type="hidden" name="to">
                 </form>
@@ -187,25 +214,29 @@
 
 @push('scripts')
 <script>
-// Sync date inputs from a view-form to a pdf-form on PDF submit
+// Sync date inputs from a view-form to pdf-forms on submit
 document.addEventListener('DOMContentLoaded', function () {
     const pairForms = [
-        { view: 'form[action="{{ route('accounts.reports.profit-loss') }}"]',  pdf: '#pl-pdf-form' },
-        { view: '#exp-view-form',  pdf: '#exp-pdf-form' },
-        { view: '#cash-view-form', pdf: '#cash-pdf-form' },
-        { view: '#pay-view-form',  pdf: '#pay-pdf-form' },
+        { view: 'form[action="{{ route('accounts.reports.profit-loss') }}"]',  pdf: ['#pl-pdf-form', '#pl-pdf-preview-form'] },
+        { view: '#exp-view-form',  pdf: ['#exp-pdf-form', '#exp-pdf-preview-form'] },
+        { view: '#cash-view-form', pdf: ['#cash-pdf-form', '#cash-pdf-preview-form'] },
+        { view: '#pay-view-form',  pdf: ['#pay-pdf-form', '#pay-pdf-preview-form'] },
     ];
 
     pairForms.forEach(function (pair) {
         const viewForm = document.querySelector(pair.view);
-        const pdfForm  = document.querySelector(pair.pdf);
-        if (!viewForm || !pdfForm) return;
+        if (!viewForm) return;
 
-        pdfForm.addEventListener('submit', function (e) {
-            const fromInput = viewForm.querySelector('[name="from"]');
-            const toInput   = viewForm.querySelector('[name="to"]');
-            if (fromInput) pdfForm.querySelector('[name="from"]').value = fromInput.value;
-            if (toInput)   pdfForm.querySelector('[name="to"]').value   = toInput.value;
+        pair.pdf.forEach(function(pdfSelector) {
+            const pdfForm = document.querySelector(pdfSelector);
+            if (!pdfForm) return;
+
+            pdfForm.addEventListener('submit', function (e) {
+                const fromInput = viewForm.querySelector('[name="from"]');
+                const toInput   = viewForm.querySelector('[name="to"]');
+                if (fromInput) pdfForm.querySelector('[name="from"]').value = fromInput.value;
+                if (toInput)   pdfForm.querySelector('[name="to"]').value   = toInput.value;
+            });
         });
     });
 });

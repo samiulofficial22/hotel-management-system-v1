@@ -5,39 +5,96 @@
     <title>Expense Report</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 11px; color: #1a1a2e; background: #fff; }
-        .page-header { background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); color: #fff; padding: 28px 32px 22px; margin-bottom: 24px; }
-        .page-header .hotel-name { font-size: 20px; font-weight: 700; letter-spacing: 1px; margin-bottom: 4px; }
-        .page-header .report-title { font-size: 14px; color: #ddd6fe; font-weight: 600; margin-bottom: 2px; }
-        .page-header .report-period { font-size: 10px; color: #ede9fe; }
+        body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 11px; color: #111; background: #fff; }
+
+        .page-header {
+            border-bottom: 3px solid #111;
+            padding: 20px 32px 16px;
+            margin-bottom: 20px;
+            display: table;
+            width: 100%;
+        }
+        .header-left { display: table-cell; vertical-align: middle; width: 70%; }
+        .header-right { display: table-cell; vertical-align: middle; text-align: right; width: 30%; }
+
+        .hotel-name    { font-size: 22px; font-weight: 700; letter-spacing: 1.5px; color: #000; text-transform: uppercase; }
+        .hotel-tagline { font-size: 9px; color: #555; letter-spacing: 0.5px; margin-top: 2px; }
+        .watermark     { font-size: 8px; color: #bbb; text-transform: uppercase; letter-spacing: 2px; margin-top: 4px; }
+
+        .report-badge  {
+            background: #111; color: #fff;
+            font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px;
+            padding: 6px 14px; display: inline-block; border-radius: 2px;
+        }
+        .report-period { font-size: 9px; color: #555; margin-top: 5px; }
+
         .content { padding: 0 32px 24px; }
-        .total-card { background: #fdf2f8; border-left: 5px solid #7c3aed; border-radius: 8px; padding: 14px 20px; margin-bottom: 22px; display: inline-block; }
-        .total-card .label { font-size: 9px; text-transform: uppercase; color: #7c3aed; font-weight: 700; margin-bottom: 4px; }
-        .total-card .amount { font-size: 22px; font-weight: 700; color: #4c1d95; }
+
+        .total-card {
+            background: #f5f5f5; border: 1px solid #ddd; border-top: 3px solid #111;
+            border-radius: 4px; padding: 14px 20px; margin-bottom: 22px; display: inline-block;
+        }
+        .total-card .label  { font-size: 8.5px; text-transform: uppercase; color: #777; font-weight: 700; margin-bottom: 4px; }
+        .total-card .amount { font-size: 22px; font-weight: 700; color: #111; }
+        .total-card .sub    { font-size: 8px; color: #999; margin-top: 3px; }
+
+        .section-title {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.8px; color: #111; margin: 0 0 12px;
+            padding-bottom: 5px; border-bottom: 2px solid #111;
+        }
+
         table { width: 100%; border-collapse: collapse; }
-        thead tr { background: #4c1d95; color: #fff; }
-        thead th { padding: 9px 14px; font-size: 10px; font-weight: 600; text-align: left; }
+        thead tr { background: #111; color: #fff; }
+        thead th { padding: 9px 14px; font-size: 9.5px; font-weight: 700; text-align: left; }
         thead th.r { text-align: right; }
-        tbody tr:nth-child(even) { background: #faf5ff; }
-        tbody td { padding: 8px 14px; border-bottom: 1px solid #ede9fe; font-size: 10px; }
-        tbody td.r { text-align: right; font-weight: 600; color: #7c3aed; }
-        tfoot tr { background: #4c1d95; color: #fff; }
+        tbody tr:nth-child(even) { background: #f9f9f9; }
+        tbody td { padding: 8px 14px; border-bottom: 1px solid #e0e0e0; font-size: 10px; color: #222; }
+        tbody td.r { text-align: right; font-weight: 600; }
+        tbody td.seq { color: #999; }
+        tfoot tr { background: #333; color: #fff; }
         tfoot td { padding: 9px 14px; font-weight: 700; font-size: 10px; }
         tfoot td.r { text-align: right; }
-        .footer { margin-top: 28px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 9px; color: #aaa; }
+
+        .doc-footer {
+            margin-top: 28px; padding-top: 8px;
+            border-top: 1px solid #ccc;
+            font-size: 8.5px; color: #888;
+            display: table; width: 100%;
+        }
+        .doc-footer .fl { display: table-cell; }
+        .doc-footer .fr { display: table-cell; text-align: right; }
     </style>
 </head>
 <body>
+
     <div class="page-header">
-        <div class="hotel-name">🏨 Hotel Management System</div>
-        <div class="report-title">Expense Report</div>
-        <div class="report-period">Period: {{ $from->format('d M Y') }} — {{ $to->format('d M Y') }}</div>
-    </div>
-    <div class="content">
-        <div class="total-card">
-            <div class="label">Total Expenses</div>
-            <div class="amount">{{ money($total) }}</div>
+        <div class="header-left">
+            <div class="hotel-name">🏨 {{ config('app.name', 'Hotel Management') }}</div>
+            <div class="hotel-tagline">Hospitality &bull; Excellence &bull; Comfort</div>
+            <div class="watermark">Official Financial Document</div>
         </div>
+        <div class="header-right">
+            <div class="report-badge">Expense Report</div>
+            <div class="report-period">
+                Period: <strong>{{ $from->format('d M Y') }}</strong> &mdash; <strong>{{ $to->format('d M Y') }}</strong>
+            </div>
+            <div class="report-period" style="margin-top:3px;">
+                Generated: {{ now()->format('d M Y, h:i A') }}
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <div class="total-card">
+            <div class="label">Total Expenses for Period</div>
+            <div class="amount">{{ money($total) }}</div>
+            <div class="sub">Sum of all expense accounts</div>
+        </div>
+
+        <div class="section-title">Expense Breakdown by Account</div>
 
         @if(!empty($breakdown))
         <table>
@@ -47,7 +104,7 @@
             <tbody>
                 @foreach($breakdown as $i => $row)
                 <tr>
-                    <td style="color:#999;">{{ $i + 1 }}</td>
+                    <td class="seq">{{ $i + 1 }}</td>
                     <td>{{ $row['name'] }}</td>
                     <td class="r">{{ money($row['amount']) }}</td>
                 </tr>
@@ -61,8 +118,9 @@
         <p style="color:#aaa; padding:16px 0;">No expenses recorded in this period.</p>
         @endif
 
-        <div class="footer">
-            <span>Generated: {{ now()->format('d M Y, h:i A') }}</span> &nbsp;|&nbsp; Hotel Management System — Confidential
+        <div class="doc-footer">
+            <div class="fl">{{ config('app.name', 'Hotel Management') }} &mdash; Confidential Financial Report</div>
+            <div class="fr">Page 1 of 1</div>
         </div>
     </div>
 </body>
