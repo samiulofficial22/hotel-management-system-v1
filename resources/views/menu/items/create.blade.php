@@ -35,8 +35,8 @@
 </div>
 <div class="mb-3">
     <label class="form-label">Image (optional)</label>
-    <input type="file" name="image" class="form-control" accept=".jpg,.jpeg,.png">
-    <small class="text-muted">JPG or PNG, max 2MB</small>
+    <input type="file" name="image" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+    <small class="text-muted">JPG, PNG or WEBP, max 2MB</small>
     @error('image')<div class="text-danger small">{{ $message }}</div>@enderror
 </div>
 <div class="mb-3 form-check">

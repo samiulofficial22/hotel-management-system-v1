@@ -150,8 +150,8 @@
                             <img src="{{ $user->profile_pic_url }}" alt="" class="rounded-circle flex-shrink-0" width="80" height="80" style="object-fit: cover;">
                             <div class="flex-grow-1">
                                 <label class="form-label">{{ __('Profile picture') }} ({{ __('optional') }})</label>
-                                <input type="file" name="profile_pic" class="form-control @error('profile_pic') is-invalid @enderror" accept=".jpg,.jpeg,.png">
-                                <small class="text-muted">{{ __('JPG or PNG, max 2MB. Leave blank to keep current.') }}</small>
+                                <input type="file" name="profile_pic" class="form-control @error('profile_pic') is-invalid @enderror" accept=".jpg,.jpeg,.png,.webp">
+                                <small class="text-muted">{{ __('JPG, PNG or WEBP, max 2MB. Leave blank to keep current.') }}</small>
                                 @error('profile_pic')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                             </div>
                         </div>

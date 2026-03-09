@@ -57,8 +57,8 @@
                         <small class="d-block text-muted">{{ __('Current NID photo') }}</small>
                     </div>
                 @endif
-                <input type="file" name="nid_photo" class="form-control @error('nid_photo') is-invalid @enderror" accept=".jpg,.jpeg,.png">
-                <small class="text-muted">{{ __('JPG or PNG, max 2MB. Leave blank to keep current.') }}</small>
+                <input type="file" name="nid_photo" class="form-control @error('nid_photo') is-invalid @enderror" accept=".jpg,.jpeg,.png,.webp">
+                <small class="text-muted">{{ __('JPG, PNG or WEBP, max 2MB. Leave blank to keep current.') }}</small>
                 @error('nid_photo')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
         </div>

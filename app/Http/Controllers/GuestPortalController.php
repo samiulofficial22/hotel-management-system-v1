@@ -15,7 +15,7 @@ class GuestPortalController extends Controller
     public function dashboard(Request $request): View
     {
         $user = $request->user();
-        if (! $user || ! $user->hasRole('Guest')) {
+        if (!$user || !$user->hasRole('Guest')) {
             abort(403);
         }
         $guest = $user->guest;
@@ -45,7 +45,7 @@ class GuestPortalController extends Controller
     public function profile(Request $request): View
     {
         $user = $request->user();
-        if (! $user || ! $user->hasRole('Guest')) {
+        if (!$user || !$user->hasRole('Guest')) {
             abort(403);
         }
         /** @var Guest|null $guest */
@@ -60,13 +60,13 @@ class GuestPortalController extends Controller
         $user = $request->user();
         /** @var Guest|null $guest */
         $guest = optional($user)->guest;
-        if (! $guest) {
+        if (!$guest) {
             abort(403);
         }
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'profile_pic' => ['nullable', 'image', 'mimes:jpeg,jpg,png', 'max:2048'],
+            'profile_pic' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
             'phone' => ['nullable', 'string', 'max:30', Rule::unique('guests', 'phone')->ignore($guest->id)],
             'nationality' => ['nullable', 'string', 'max:100'],
             'address' => ['nullable', 'string'],
@@ -113,7 +113,7 @@ class GuestPortalController extends Controller
     public function bookings(Request $request): View
     {
         $user = $request->user();
-        if (! $user || ! $user->hasRole('Guest')) {
+        if (!$user || !$user->hasRole('Guest')) {
             abort(403);
         }
         $guest = optional($user)->guest;
@@ -129,4 +129,3 @@ class GuestPortalController extends Controller
         return view('guest.bookings', compact('guest', 'bookings'));
     }
 }
-

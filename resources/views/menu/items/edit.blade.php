@@ -38,8 +38,8 @@
             <small class="d-block text-muted">Current image. Upload new to replace.</small>
         </div>
     @endif
-    <input type="file" name="image" class="form-control" accept=".jpg,.jpeg,.png">
-    <small class="text-muted">JPG or PNG, max 2MB. Leave blank to keep current.</small>
+    <input type="file" name="image" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+    <small class="text-muted">JPG, PNG or WEBP, max 2MB. Leave blank to keep current.</small>
     @error('image')<div class="text-danger small">{{ $message }}</div>@enderror
 </div>
 <div class="mb-3 form-check">

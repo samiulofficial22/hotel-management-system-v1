@@ -42,8 +42,8 @@ class GuestController extends Controller
         $rules = array_merge($this->service->rules(), [
             'email' => ['nullable', 'email', 'max:255', Rule::unique('guests', 'email')],
             'phone' => ['nullable', 'string', 'max:30', Rule::unique('guests', 'phone')],
-            'nid_photo_front' => ['nullable', 'file', 'image', 'max:2048'],
-            'nid_photo_back' => ['nullable', 'file', 'image', 'max:2048'],
+            'nid_photo_front' => ['nullable', 'file', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
+            'nid_photo_back' => ['nullable', 'file', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
             'portal_password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
         $validated = $request->validate($rules);
@@ -83,8 +83,8 @@ class GuestController extends Controller
         $rules = array_merge($this->service->rules(), [
             'email' => ['nullable', 'email', 'max:255', Rule::unique('guests', 'email')->ignore($guest->id)],
             'phone' => ['nullable', 'string', 'max:30', Rule::unique('guests', 'phone')->ignore($guest->id)],
-            'nid_photo_front' => ['nullable', 'file', 'image', 'max:2048'],
-            'nid_photo_back' => ['nullable', 'file', 'image', 'max:2048'],
+            'nid_photo_front' => ['nullable', 'file', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
+            'nid_photo_back' => ['nullable', 'file', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
             'portal_password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
         $validated = $request->validate($rules);

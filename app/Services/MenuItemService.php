@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Collection;
 
 class MenuItemService
 {
-    public function __construct(protected MenuItemRepository $repository) {}
+    public function __construct(protected MenuItemRepository $repository)
+    {
+    }
 
     public function rules(bool $forUpdate = false): array
     {
@@ -19,7 +21,7 @@ class MenuItemService
             'price' => ['required', 'numeric', 'min:0'],
             'cost' => ['nullable', 'numeric', 'min:0'],
             'description' => ['nullable', 'string'],
-            'image' => ['nullable', 'image', 'mimes:jpeg,jpg,png', 'max:2048'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
             'is_available' => ['boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ];

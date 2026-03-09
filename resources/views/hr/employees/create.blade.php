@@ -43,8 +43,8 @@
             </div>
             <div class="mb-3">
                 <label class="form-label">{{ __('NID photo') }} ({{ __('optional') }})</label>
-                <input type="file" name="nid_photo" class="form-control @error('nid_photo') is-invalid @enderror" accept=".jpg,.jpeg,.png">
-                <small class="text-muted">{{ __('JPG or PNG, max 2MB') }}</small>
+                <input type="file" name="nid_photo" class="form-control @error('nid_photo') is-invalid @enderror" accept=".jpg,.jpeg,.png,.webp">
+                <small class="text-muted">{{ __('JPG, PNG or WEBP, max 2MB') }}</small>
                 @error('nid_photo')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
         </div>

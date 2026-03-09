@@ -22,12 +22,13 @@ class ProfileController extends Controller
 
         $rules = [
             'name' => ['required', 'string', 'max:255'],
-            'profile_pic' => ['nullable', 'image', 'mimes:jpeg,jpg,png', 'max:2048'],
+            'profile_pic' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
         ];
 
         if ($user->hasRole('Admin')) {
             $rules['email'] = ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id];
-        } else {
+        }
+        else {
             $rules['email'] = ['required', 'string', 'email', 'in:' . $user->email];
         }
 
@@ -37,7 +38,7 @@ class ProfileController extends Controller
 
         $validated = $request->validate($rules);
 
-        if (! $user->hasRole('Admin')) {
+        if (!$user->hasRole('Admin')) {
             $validated['email'] = $user->email;
         }
 
@@ -46,7 +47,8 @@ class ProfileController extends Controller
                 Storage::disk('public')->delete($user->profile_pic);
             }
             $validated['profile_pic'] = $request->file('profile_pic')->store('profile-pics', 'public');
-        } else {
+        }
+        else {
             unset($validated['profile_pic']);
         }
 
