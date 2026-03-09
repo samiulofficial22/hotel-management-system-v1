@@ -69,9 +69,15 @@
 </head>
 <body>
 
+@php
+    function pdfMoney($amount) {
+        return 'Tk. ' . number_format((float)$amount, 2);
+    }
+@endphp
+
     <div class="page-header">
         <div class="header-left">
-            <div class="hotel-name">🏨 {{ config('app.name', 'Hotel Management') }}</div>
+            <div class="hotel-name">{{ config('app.name', 'Hotel Management') }}</div>
             <div class="hotel-tagline">Hospitality &bull; Excellence &bull; Comfort</div>
             <div class="watermark">Official Financial Document</div>
         </div>
@@ -90,7 +96,7 @@
 
         <div class="total-card">
             <div class="label">Total Expenses for Period</div>
-            <div class="amount">{{ money($total) }}</div>
+            <div class="amount">{{ pdfMoney($total) }}</div>
             <div class="sub">Sum of all expense accounts</div>
         </div>
 
@@ -99,19 +105,19 @@
         @if(!empty($breakdown))
         <table>
             <thead>
-                <tr><th>#</th><th>Account</th><th class="r">Amount</th></tr>
+                <tr><th>#</th><th>Account</th><th class="r">Amount (Tk.)</th></tr>
             </thead>
             <tbody>
                 @foreach($breakdown as $i => $row)
                 <tr>
                     <td class="seq">{{ $i + 1 }}</td>
                     <td>{{ $row['name'] }}</td>
-                    <td class="r">{{ money($row['amount']) }}</td>
+                    <td class="r">{{ pdfMoney($row['amount']) }}</td>
                 </tr>
                 @endforeach
             </tbody>
             <tfoot>
-                <tr><td colspan="2">Total Expense</td><td class="r">{{ money($total) }}</td></tr>
+                <tr><td colspan="2">Total Expense</td><td class="r">{{ pdfMoney($total) }}</td></tr>
             </tfoot>
         </table>
         @else

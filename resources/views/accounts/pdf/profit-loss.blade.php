@@ -20,18 +20,13 @@
 
         .hotel-name   { font-size: 22px; font-weight: 700; letter-spacing: 1.5px; color: #000; text-transform: uppercase; }
         .hotel-tagline{ font-size: 9px; color: #555; letter-spacing: 0.5px; margin-top: 2px; }
-        .hotel-address{ font-size: 8.5px; color: #666; margin-top: 3px; }
+        .watermark    { font-size: 8px; color: #bbb; text-transform: uppercase; letter-spacing: 2px; margin-top: 4px; }
 
         .report-badge {
-            background: #111;
-            color: #fff;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 6px 14px;
-            display: inline-block;
-            border-radius: 2px;
+            background: #111; color: #fff;
+            font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px;
+            padding: 6px 14px; display: inline-block; border-radius: 2px;
         }
         .report-period { font-size: 9px; color: #555; margin-top: 5px; }
 
@@ -72,19 +67,20 @@
         .doc-footer .fr { display: table-cell; text-align: right; }
 
         .content { padding: 0 32px 24px; }
-
-        .watermark {
-            font-size: 8px; color: #bbb; text-transform: uppercase;
-            letter-spacing: 2px; margin-top: 4px;
-        }
     </style>
 </head>
 <body>
 
+@php
+    function pdfMoney($amount) {
+        return 'Tk. ' . number_format((float)$amount, 2);
+    }
+@endphp
+
     {{-- ── PROFESSIONAL HEADER ── --}}
     <div class="page-header">
         <div class="header-left">
-            <div class="hotel-name">🏨 {{ config('app.name', 'Hotel Management') }}</div>
+            <div class="hotel-name">{{ config('app.name', 'Hotel Management') }}</div>
             <div class="hotel-tagline">Hospitality &bull; Excellence &bull; Comfort</div>
             <div class="watermark">Official Financial Document</div>
         </div>
@@ -101,22 +97,22 @@
 
     <div class="content">
 
-        {{-- SUMMARY --}}
+        {{-- SUMMARY CARDS --}}
         <table class="summary-grid" style="border-spacing:8px;">
             <tr>
                 <td class="summary-card">
                     <div class="label">Total Revenue</div>
-                    <div class="amount">{{ money($revenue) }}</div>
+                    <div class="amount">{{ pdfMoney($revenue) }}</div>
                     <div class="sub">Gross income for the period</div>
                 </td>
                 <td class="summary-card">
                     <div class="label">Total Expense</div>
-                    <div class="amount">{{ money($expense) }}</div>
+                    <div class="amount">{{ pdfMoney($expense) }}</div>
                     <div class="sub">Total costs incurred</div>
                 </td>
                 <td class="summary-card">
                     <div class="label">Net {{ $profit >= 0 ? 'Profit' : 'Loss' }}</div>
-                    <div class="amount">{{ money(abs($profit)) }}</div>
+                    <div class="amount">{{ pdfMoney(abs($profit)) }}</div>
                     <div class="sub">{{ $profit >= 0 ? 'Revenue exceeds expenses' : 'Expenses exceed revenue' }}</div>
                 </td>
             </tr>
@@ -126,17 +122,17 @@
         <div class="section-title">Revenue Breakdown</div>
         @if(!empty($revenueBreakdown))
         <table>
-            <thead><tr><th>#</th><th>Account</th><th class="r">Amount</th></tr></thead>
+            <thead><tr><th>#</th><th>Account</th><th class="r">Amount (Tk.)</th></tr></thead>
             <tbody>
                 @foreach($revenueBreakdown as $i => $rb)
                 <tr>
                     <td style="color:#999;">{{ $i + 1 }}</td>
                     <td>{{ $rb['name'] }}</td>
-                    <td class="r">{{ money($rb['amount']) }}</td>
+                    <td class="r">{{ pdfMoney($rb['amount']) }}</td>
                 </tr>
                 @endforeach
             </tbody>
-            <tfoot><tr><td colspan="2">Total Revenue</td><td class="r">{{ money($revenue) }}</td></tr></tfoot>
+            <tfoot><tr><td colspan="2">Total Revenue</td><td class="r">{{ pdfMoney($revenue) }}</td></tr></tfoot>
         </table>
         @else
         <p style="color:#aaa; font-size:10px; padding:8px 0;">No revenue recorded in this period.</p>
@@ -146,17 +142,17 @@
         <div class="section-title">Expense Breakdown</div>
         @if(!empty($expenseBreakdown))
         <table>
-            <thead><tr><th>#</th><th>Account</th><th class="r">Amount</th></tr></thead>
+            <thead><tr><th>#</th><th>Account</th><th class="r">Amount (Tk.)</th></tr></thead>
             <tbody>
                 @foreach($expenseBreakdown as $i => $eb)
                 <tr>
                     <td style="color:#999;">{{ $i + 1 }}</td>
                     <td>{{ $eb['name'] }}</td>
-                    <td class="r">{{ money($eb['amount']) }}</td>
+                    <td class="r">{{ pdfMoney($eb['amount']) }}</td>
                 </tr>
                 @endforeach
             </tbody>
-            <tfoot><tr><td colspan="2">Total Expense</td><td class="r">{{ money($expense) }}</td></tr></tfoot>
+            <tfoot><tr><td colspan="2">Total Expense</td><td class="r">{{ pdfMoney($expense) }}</td></tr></tfoot>
         </table>
         @else
         <p style="color:#aaa; font-size:10px; padding:8px 0;">No expenses recorded in this period.</p>
@@ -167,7 +163,7 @@
             <tfoot>
                 <tr>
                     <td style="font-weight:700; font-size:11px;">Net {{ $profit >= 0 ? 'Profit' : 'Loss' }}</td>
-                    <td class="r" style="font-size:13px;">{{ money(abs($profit)) }}</td>
+                    <td class="r" style="font-size:13px;">{{ pdfMoney(abs($profit)) }}</td>
                 </tr>
             </tfoot>
         </table>

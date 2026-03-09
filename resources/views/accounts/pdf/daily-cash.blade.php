@@ -67,9 +67,18 @@
 </head>
 <body>
 
+@php
+    function pdfMoney($amount) {
+        return 'Tk. ' . number_format((float)$amount, 2);
+    }
+    $totalIn  = array_sum(array_column($daily, 'cashIn'));
+    $totalOut = array_sum(array_column($daily, 'cashOut'));
+    $netTotal = $totalIn - $totalOut;
+@endphp
+
     <div class="page-header">
         <div class="header-left">
-            <div class="hotel-name">🏨 {{ config('app.name', 'Hotel Management') }}</div>
+            <div class="hotel-name">{{ config('app.name', 'Hotel Management') }}</div>
             <div class="hotel-tagline">Hospitality &bull; Excellence &bull; Comfort</div>
             <div class="watermark">Official Financial Document</div>
         </div>
@@ -85,26 +94,21 @@
     </div>
 
     <div class="content">
-        @php
-            $totalIn  = array_sum(array_column($daily, 'cashIn'));
-            $totalOut = array_sum(array_column($daily, 'cashOut'));
-            $netTotal = $totalIn - $totalOut;
-        @endphp
 
         <div class="totals-row">
             <div class="totals-cell">
                 <div class="label">Total Cash In</div>
-                <div class="val">{{ money($totalIn) }}</div>
+                <div class="val">{{ pdfMoney($totalIn) }}</div>
             </div>
             <div class="totals-sep"></div>
             <div class="totals-cell">
                 <div class="label">Total Cash Out</div>
-                <div class="val">{{ money($totalOut) }}</div>
+                <div class="val">{{ pdfMoney($totalOut) }}</div>
             </div>
             <div class="totals-sep"></div>
             <div class="totals-cell">
                 <div class="label">Net Movement</div>
-                <div class="val">{{ $netTotal >= 0 ? '+' : '' }}{{ money($netTotal) }}</div>
+                <div class="val">{{ ($netTotal >= 0 ? '+' : '') . pdfMoney($netTotal) }}</div>
             </div>
         </div>
 
@@ -115,22 +119,22 @@
             <thead>
                 <tr>
                     <th>Date</th>
-                    <th class="r">Opening</th>
+                    <th class="r">Opening (Tk.)</th>
                     <th class="r">Cash In (+)</th>
                     <th class="r">Cash Out (-)</th>
                     <th class="r">Net</th>
-                    <th class="r">Closing</th>
+                    <th class="r">Closing (Tk.)</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($daily as $date => $data)
                 <tr>
                     <td><strong>{{ \Carbon\Carbon::parse($date)->format('d M Y') }}</strong></td>
-                    <td class="r">{{ money($data['opening']) }}</td>
-                    <td class="r">+{{ money($data['cashIn']) }}</td>
-                    <td class="r">-{{ money($data['cashOut']) }}</td>
-                    <td class="r"><strong>{{ $data['net'] >= 0 ? '+' : '' }}{{ money($data['net']) }}</strong></td>
-                    <td class="r"><strong>{{ money($data['closing']) }}</strong></td>
+                    <td class="r">{{ pdfMoney($data['opening']) }}</td>
+                    <td class="r">+{{ pdfMoney($data['cashIn']) }}</td>
+                    <td class="r">-{{ pdfMoney($data['cashOut']) }}</td>
+                    <td class="r"><strong>{{ ($data['net'] >= 0 ? '+' : '') . pdfMoney($data['net']) }}</strong></td>
+                    <td class="r"><strong>{{ pdfMoney($data['closing']) }}</strong></td>
                 </tr>
                 @endforeach
             </tbody>
@@ -138,9 +142,9 @@
                 <tr>
                     <td>Period Totals</td>
                     <td class="r">&mdash;</td>
-                    <td class="r">+{{ money($totalIn) }}</td>
-                    <td class="r">-{{ money($totalOut) }}</td>
-                    <td class="r">{{ $netTotal >= 0 ? '+' : '' }}{{ money($netTotal) }}</td>
+                    <td class="r">+{{ pdfMoney($totalIn) }}</td>
+                    <td class="r">-{{ pdfMoney($totalOut) }}</td>
+                    <td class="r">{{ ($netTotal >= 0 ? '+' : '') . pdfMoney($netTotal) }}</td>
                     <td class="r">&mdash;</td>
                 </tr>
             </tfoot>

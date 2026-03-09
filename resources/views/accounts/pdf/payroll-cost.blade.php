@@ -69,9 +69,15 @@
 </head>
 <body>
 
+@php
+    function pdfMoney($amount) {
+        return 'Tk. ' . number_format((float)$amount, 2);
+    }
+@endphp
+
     <div class="page-header">
         <div class="header-left">
-            <div class="hotel-name">🏨 {{ config('app.name', 'Hotel Management') }}</div>
+            <div class="hotel-name">{{ config('app.name', 'Hotel Management') }}</div>
             <div class="hotel-tagline">Hospitality &bull; Excellence &bull; Comfort</div>
             <div class="watermark">Official Financial Document</div>
         </div>
@@ -90,7 +96,7 @@
 
         <div class="total-card">
             <div class="label">Total Payroll Cost for Period</div>
-            <div class="amount">{{ money($totalCost) }}</div>
+            <div class="amount">{{ pdfMoney($totalCost) }}</div>
             <div class="sub">Sum of all net salaries paid</div>
         </div>
 
@@ -105,7 +111,7 @@
                     <th>Period</th>
                     <th>Paid At</th>
                     <th class="r">Employees</th>
-                    <th class="r">Total Net Salary</th>
+                    <th class="r">Net Salary (Tk.)</th>
                 </tr>
             </thead>
             <tbody>
@@ -116,14 +122,14 @@
                     <td>{{ $run->period_start->format('d M Y') }} &ndash; {{ $run->period_end->format('d M Y') }}</td>
                     <td>{{ $run->paid_at?->format('d M Y') ?? '—' }}</td>
                     <td class="r">{{ $run->items->count() }}</td>
-                    <td class="r">{{ money($run->items->sum('net_salary')) }}</td>
+                    <td class="r">{{ pdfMoney($run->items->sum('net_salary')) }}</td>
                 </tr>
                 @endforeach
             </tbody>
             <tfoot>
                 <tr>
                     <td colspan="5">Total Payroll Cost</td>
-                    <td class="r">{{ money($totalCost) }}</td>
+                    <td class="r">{{ pdfMoney($totalCost) }}</td>
                 </tr>
             </tfoot>
         </table>
