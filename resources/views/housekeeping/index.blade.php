@@ -220,6 +220,48 @@
                             </form>
                             <span class="me-1"></span>
                         @endcan
+                        @if($a->room->status === 'occupied' && $a->room->latestBooking)
+                            <button type="button" class="btn btn-sm btn-outline-info me-1" data-bs-toggle="modal" data-bs-target="#refreshmentModal{{ $a->id }}" title="{{ __('Record Refreshment') }}">
+                                <i class="bi bi-cup-straw"></i>
+                            </button>
+                            <div class="modal fade" id="refreshmentModal{{ $a->id }}" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <form action="{{ route('housekeeping.refreshment.record') }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="booking_id" value="{{ $a->room->latestBooking->id }}">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title text-dark">Record Refreshment – Room {{ $a->room->number }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body text-start">
+                                                <div class="alert alert-info py-2 small mb-3">
+                                                    <i class="bi bi-info-circle me-1"></i>
+                                                    Charging to guest: <strong>{{ $a->room->latestBooking->guest->name ?? 'Guest' }}</strong>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label small">Item</label>
+                                                    <select name="item_id" class="form-select" required>
+                                                        <option value="">— Select item —</option>
+                                                        @foreach($refreshmentItems as $item)
+                                                            <option value="{{ $item->id }}">{{ $item->name }} ({{ number_format($item->price, 2) }})</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label small">Quantity</label>
+                                                    <input type="number" name="quantity" class="form-control" value="1" min="1" required>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-info">Record Consumption</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                         @if($a->status === 'pending')
                             @can('housekeeping.assign_others')
                             <form action="{{ route('housekeeping.reassign', $a) }}" method="POST" class="d-inline-block me-1">

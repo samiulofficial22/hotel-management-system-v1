@@ -210,6 +210,7 @@ Route::middleware(['auth'])->group(function (): void {
             Route::post('/housekeeping/{assignment}/start', [HousekeepingController::class , 'start'])->name('housekeeping.start')->middleware('permission:housekeeping.manage');
             Route::post('/housekeeping/{assignment}/complete', [HousekeepingController::class , 'complete'])->name('housekeeping.complete')->middleware('permission:housekeeping.manage');
             Route::patch('/housekeeping/{assignment}/notes', [HousekeepingController::class , 'updateNotes'])->name('housekeeping.notes.update')->middleware('permission:housekeeping.manage');
+            Route::post('/housekeeping/refreshment', [HousekeepingController::class , 'recordRefreshment'])->name('housekeeping.refreshment.record');
         }
         );
         Route::middleware('permission:minibar.manage')->group(function (): void {

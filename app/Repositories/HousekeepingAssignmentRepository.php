@@ -14,7 +14,7 @@ class HousekeepingAssignmentRepository
 
     public function forDate(Carbon $date, ?int $assignedTo = null, ?int $roomId = null): Collection
     {
-        $q = $this->model->newQuery()->with(['room.roomType', 'assignedTo'])
+        $q = $this->model->newQuery()->with(['room.roomType', 'room.latestBooking.guest', 'assignedTo'])
             ->where('date', $date->toDateString())
             ->orderByDesc('id');
         if ($assignedTo !== null) {

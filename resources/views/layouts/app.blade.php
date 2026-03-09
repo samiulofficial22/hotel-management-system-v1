@@ -118,6 +118,9 @@
                 <a class="nav-link {{ request()->routeIs('housekeeping.*') ? 'active' : '' }}" href="{{ route('housekeeping.index') }}">
                     <i class="bi bi-bucket"></i> {{ __('Room cleaning assignments') }}
                 </a>
+                <a class="nav-link {{ request()->routeIs('refreshments.transactions.index') ? 'active' : '' }}" href="{{ route('refreshments.transactions.index') }}">
+                    <i class="bi bi-cup-straw"></i> {{ __('Room Refreshments') }}
+                </a>
                 <a class="nav-link {{ request()->routeIs('maintenance.*') ? 'active' : '' }}" href="{{ route('maintenance.index') }}">
                     <i class="bi bi-tools"></i> {{ __('messages.Maintenance') }}
                 </a>

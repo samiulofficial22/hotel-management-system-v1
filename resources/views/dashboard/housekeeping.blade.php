@@ -30,6 +30,21 @@
 </div>
 
 <div class="mb-4">
+    <a href="{{ route('refreshments.transactions.index') }}" class="card text-decoration-none text-dark border-primary shadow-sm hover-shadow">
+        <div class="card-body d-flex align-items-center gap-3 py-4">
+            <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 56px; height: 56px;">
+                <i class="bi bi-cup-straw fs-4 text-primary"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h2 class="h5 mb-1">{{ __('Room Refreshments') }}</h2>
+                <p class="text-muted small mb-0">{{ __('Record and track room refreshment consumption.') }}</p>
+            </div>
+            <i class="bi bi-chevron-right text-primary flex-shrink-0"></i>
+        </div>
+    </a>
+</div>
+
+<div class="mb-4">
     <a href="{{ route('maintenance.index') }}" class="card text-decoration-none text-dark border-primary shadow-sm hover-shadow">
         <div class="card-body d-flex align-items-center gap-3 py-4">
             <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 56px; height: 56px;">
