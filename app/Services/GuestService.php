@@ -6,15 +6,26 @@ use App\Models\Guest;
 use App\Repositories\GuestRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Validation\Rule;
 
 class GuestService
 {
-    public function __construct(
-        protected GuestRepository $repository
-    ) {}
-
-    public function rules(bool $forUpdate = false): array
+    public function __construct(protected
+        GuestRepository $repository
+        )
     {
+    }
+
+    public function rules(bool $forUpdate = false, ?Guest $guest = null): array
+    {
+        $nidRule = ['nullable', 'string', 'max:50'];
+        if ($forUpdate && $guest) {
+            $nidRule[] = Rule::unique('guests', 'nid_number')->ignore($guest->id)->whereNotNull('nid_number');
+        }
+        else {
+            $nidRule[] = Rule::unique('guests', 'nid_number')->whereNotNull('nid_number');
+        }
+
         return [
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
@@ -23,7 +34,7 @@ class GuestService
             'nationality' => ['nullable', 'string', 'max:100'],
             'id_type' => ['nullable', 'string', 'max:50'],
             'id_number' => ['nullable', 'string', 'max:100'],
-            'nid_number' => ['nullable', 'string', 'max:50'],
+            'nid_number' => $nidRule,
             'date_of_birth' => ['nullable', 'date'],
             'address' => ['nullable', 'string'],
             'city' => ['nullable', 'string', 'max:100'],
