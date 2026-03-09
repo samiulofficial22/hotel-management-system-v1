@@ -1,0 +1,49 @@
+﻿    public function reportProfitLossPdf(\Illuminate\Http\Request $request): \Illuminate\Http\Response
+    {
+        $from = $request->filled('from') ? \Carbon\Carbon::parse($request->from) : now()->startOfMonth();
+        $to = $request->filled('to') ? \Carbon\Carbon::parse($request->to) : now()->endOfMonth();
+        $revenue = $this->ledgerService->totalRevenue($from, $to);
+        $expense = $this->ledgerService->totalExpense($from, $to);
+        $profit = $revenue - $expense;
+        $revenueBreakdown = $this->ledgerService->revenueByAccount($from, $to);
+        $expenseBreakdown = $this->ledgerService->expenseByAccount($from, $to);
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('accounts.pdf.profit-loss', compact('from', 'to', 'revenue', 'expense', 'profit', 'revenueBreakdown', 'expenseBreakdown'))
+            ->setPaper('a4', 'portrait');
+        return $pdf->download('profit-loss-' . $from->format('Y-m-d') . '-to-' . $to->format('Y-m-d') . '.pdf');
+    }
+
+    public function reportExpensePdf(\Illuminate\Http\Request $request): \Illuminate\Http\Response
+    {
+        $from = $request->filled('from') ? \Carbon\Carbon::parse($request->from) : now()->startOfMonth();
+        $to = $request->filled('to') ? \Carbon\Carbon::parse($request->to) : now()->endOfMonth();
+        $breakdown = $this->ledgerService->expenseByAccount($from, $to);
+        $total = array_sum(array_column($breakdown, 'amount'));
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('accounts.pdf.expense', compact('from', 'to', 'breakdown', 'total'))
+            ->setPaper('a4', 'portrait');
+        return $pdf->download('expense-report-' . $from->format('Y-m-d') . '-to-' . $to->format('Y-m-d') . '.pdf');
+    }
+
+    public function reportDailyCashPdf(\Illuminate\Http\Request $request): \Illuminate\Http\Response
+    {
+        $from = $request->filled('from') ? \Carbon\Carbon::parse($request->from) : now()->startOfMonth();
+        $to = $request->filled('to') ? \Carbon\Carbon::parse($request->to) : now()->endOfMonth();
+        $daily = $this->ledgerService->dailyCashSummary($from, $to);
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('accounts.pdf.daily-cash', compact('from', 'to', 'daily'))
+            ->setPaper('a4', 'landscape');
+        return $pdf->download('daily-cash-' . $from->format('Y-m-d') . '-to-' . $to->format('Y-m-d') . '.pdf');
+    }
+
+    public function reportPayrollCostPdf(\Illuminate\Http\Request $request): \Illuminate\Http\Response
+    {
+        $from = $request->filled('from') ? \Carbon\Carbon::parse($request->from)->startOfDay() : now()->copy()->startOfMonth();
+        $to = $request->filled('to') ? \Carbon\Carbon::parse($request->to)->endOfDay() : now()->copy()->endOfMonth();
+        $runs = \App\Models\PayrollRun::with('items.employee')->where('status', \App\Models\PayrollRun::STATUS_PAID)
+            ->whereNotNull('paid_at')
+            ->whereBetween('paid_at', [$from, $to])
+            ->orderByDesc('paid_at')
+            ->get();
+        $totalCost = $runs->sum(fn ($r) => $r->items->sum('net_salary'));
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('accounts.pdf.payroll-cost', compact('from', 'to', 'runs', 'totalCost'))
+            ->setPaper('a4', 'portrait');
+        return $pdf->download('payroll-cost-' . $from->format('Y-m-d') . '-to-' . $to->format('Y-m-d') . '.pdf');
+    }

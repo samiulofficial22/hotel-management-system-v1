@@ -3,12 +3,18 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h1 class="h3 mb-1 font-weight-bold">Daily Cash Summary</h1>
-        <p class="text-muted small mb-0">Track all cash-in and cash-out movements by date.</p>
+        <h1 class="h3 mb-1 font-weight-bold">💵 Daily Cash Summary</h1>
+        <p class="text-muted small mb-0">Period: <strong>{{ $from->format('d M Y') }}</strong> — <strong>{{ $to->format('d M Y') }}</strong></p>
     </div>
-    <a href="{{ route('accounts.reports.index') }}" class="btn btn-outline-secondary">
-        <i class="fas fa-arrow-left me-1"></i> Back to Reports
-    </a>
+    <div class="d-flex gap-2">
+        <a href="{{ route('accounts.reports.daily-cash.pdf', ['from' => $from->format('Y-m-d'), 'to' => $to->format('Y-m-d')]) }}"
+           class="btn btn-danger btn-sm" target="_blank">
+            <i class="fas fa-file-pdf me-1"></i> Download PDF
+        </a>
+        <a href="{{ route('accounts.reports.index') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Back to Reports
+        </a>
+    </div>
 </div>
 
 <form method="GET" action="{{ route('accounts.reports.daily-cash') }}" class="card border-0 shadow-sm mb-4 bg-light">

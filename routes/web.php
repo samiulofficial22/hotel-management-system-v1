@@ -272,9 +272,13 @@ Route::middleware(['auth'])->group(function (): void {
             Route::get('/accounts/ledger', [AccountsController::class , 'ledger'])->name('accounts.ledger');
             Route::get('/accounts/reports', [AccountsController::class , 'reportsIndex'])->name('accounts.reports.index');
             Route::get('/accounts/reports/profit-loss', [AccountsController::class , 'reportProfitLoss'])->name('accounts.reports.profit-loss');
+            Route::get('/accounts/reports/profit-loss/pdf', [AccountsController::class , 'reportProfitLossPdf'])->name('accounts.reports.profit-loss.pdf');
             Route::get('/accounts/reports/expense', [AccountsController::class , 'reportExpense'])->name('accounts.reports.expense');
+            Route::get('/accounts/reports/expense/pdf', [AccountsController::class , 'reportExpensePdf'])->name('accounts.reports.expense.pdf');
             Route::get('/accounts/reports/daily-cash', [AccountsController::class , 'reportDailyCash'])->name('accounts.reports.daily-cash');
+            Route::get('/accounts/reports/daily-cash/pdf', [AccountsController::class , 'reportDailyCashPdf'])->name('accounts.reports.daily-cash.pdf');
             Route::get('/accounts/reports/payroll-cost', [AccountsController::class , 'reportPayrollCost'])->name('accounts.reports.payroll-cost');
+            Route::get('/accounts/reports/payroll-cost/pdf', [AccountsController::class , 'reportPayrollCostPdf'])->name('accounts.reports.payroll-cost.pdf');
             Route::post('/accounts/entry', [AccountsController::class , 'storeEntry'])->name('accounts.entry.store')->middleware('permission:accounts.manage');
             Route::get('/accounts/create', [AccountsController::class , 'create'])->name('accounts.create')->middleware('permission:accounts.manage');
             Route::post('/accounts', [AccountsController::class , 'store'])->name('accounts.store')->middleware('permission:accounts.manage');
