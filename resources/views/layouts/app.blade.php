@@ -16,7 +16,7 @@
         .sidebar .nav-link i { width: 1.4rem; margin-right: 0.5rem; opacity: 0.9; }
         .main-content { flex: 1; min-width: 0; }
         @media (max-width: 991.98px) {
-            .sidebar { position: fixed; left: 0; top: 0; z-index: 1050; transform: translateX(-100%); margin: 0; }
+            .sidebar { position: fixed; left: 0; top: 0; z-index: 1050; transform: translateX(-100%); margin: 0; height: 100vh; overflow-y: auto; }
             .sidebar.show { transform: translateX(0); }
             .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1040; }
             .sidebar-backdrop.show { display: block; }
