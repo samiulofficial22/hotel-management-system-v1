@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Management System - User Manual | হোটেল ম্যানেজমেন্ট সিস্টেম - ইউজার ম্যানুয়াল</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&family=Hind+Siliguri:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-light: #6366F1;
+            --primary-dark: #3730A3;
+            --secondary: #10B981;
+            --bg-body: #F3F4F6;
+            --bg-surface: #FFFFFF;
+            --text-main: #1F2937;
+            --text-muted: #6B7280;
+            --border-color: #E5E7EB;
+            --sidebar-width: 320px;
+        }
+
+        body.dark-theme {
+            --primary: #6366F1;
+            --primary-light: #818CF8;
+            --primary-dark: #4F46E5;
+            --secondary: #10B981;
+            --bg-body: #0F172A;
+            --bg-surface: #1E293B;
+            --text-main: #F8FAFC;
+            --text-muted: #CBD5E1;
+            --border-color: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Hind Siliguri', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            display: flex;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: 'Outfit', 'Hind Siliguri', sans-serif;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 1rem;
+        }
+
+        /* Sidebar Glassmorphism */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: rgba(var(--bg-surface), 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-right: 1px solid var(--border-color);
+            padding: 2rem 0;
+            overflow-y: auto;
+            z-index: 100;
+            background-color: var(--bg-surface);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 0 2rem 2rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 2rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            position: relative;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .nav-link-content {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .nav-link i {
+            width: 24px;
+            margin-right: 10px;
+            font-size: 1.1rem;
+        }
+
+        .bn-text {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-left: 34px;
+            margin-top: 2px;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+            background-color: rgba(99, 102, 241, 0.05);
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+            background-color: rgba(99, 102, 241, 0.1);
+            border-right: 4px solid var(--primary);
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0;
+            background-color: var(--primary);
+            transition: width 0.2s ease;
+            opacity: 0.1;
+        }
+
+        .nav-link:hover::before {
+            width: 100%;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 3rem;
+            max-width: 1100px;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 2rem;
+        }
+
+        .theme-toggle {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.5rem;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Cards and Sections structure */
+        section {
+            background-color: var(--bg-surface);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeIn 0.6s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        section:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.06);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(16, 185, 129, 0.1));
+            color: var(--primary);
+            border-radius: 12px;
+            margin-right: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .feature-card {
+            background-color: var(--bg-body);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary-light);
+            background-color: rgba(99, 102, 241, 0.02);
+            transform: scale(1.02);
+        }
+
+        .feature-card h4 {
+            font-size: 1.1rem;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card h4 i {
+            margin-right: 0.5rem;
+            color: var(--primary);
+            width: 24px;
+            text-align: center;
+        }
+
+        .feature-card p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background-color: rgba(79, 70, 229, 0.1);
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--secondary);
+            margin-right: 0.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .bilingual-block {
+            margin-bottom: 1.5rem;
+            border-left: 3px solid var(--primary-light);
+            padding-left: 1rem;
+        }
+
+        .bilingual-block p.en {
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+        }
+
+        .bilingual-block p.bn {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* Mobile Menu */
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);
+            font-size: 1.5rem;
+            z-index: 1000;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .mobile-menu-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 900px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+                box-shadow: 5px 0 25px rgba(0, 0, 0, 0.1);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+
+            .mobile-menu-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .grid-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body class="scroll-smooth">
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>HMS Guide <br><span style="font-size: 1.1rem; font-family: 'Hind Siliguri'; font-weight: 500;">এইচএমএস
+                    গাইড</span></h2>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">Version 1.0 Documentation (Bilingual)</p>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#intro" class="nav-link active">
+                    <div class="nav-link-content"><i class="fas fa-home"></i> Introduction</div>
+                    <div class="bn-text">ভূমিকা</div>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#roles" class="nav-link">
+                    <div class="nav-link-content"><i class="fas fa-user-shield"></i> User Roles (7 Roles)</div>
+                    <div class="bn-text">ইউজারের ধরন (৭টি রোল)</div>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#rooms" class="nav-link">
+                    <div class="nav-link-content"><i class="fas fa-bed"></i> Rooms & Bookings</div>
+                    <div class="bn-text">রুম এবং বুকিং</div>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#pos" class="nav-link">
+                    <div class="nav-link-content"><i class="fas fa-utensils"></i> F&B, POS & Kitchen</div>
+                    <div class="bn-text">রেস্টুরেন্ট, পস এবং কিচেন</div>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#housekeeping" class="nav-link">
+                    <div class="nav-link-content"><i class="fas fa-broom"></i> Housekeeping & Maintenance</div>
+                    <div class="bn-text">হাউসকিপিং এবং রক্ষণাবেক্ষণ</div>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#business" class="nav-link">
+                    <div class="nav-link-content"><i class="fas fa-chart-line"></i> Accounts, HR & Payroll</div>
+                    <div class="bn-text">হিসাব, এইচআর এবং পে-রোল</div>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#settings" class="nav-link">
+                    <div class="nav-link-content"><i class="fas fa-cogs"></i> System Settings</div>
+                    <div class="bn-text">সিস্টেম সেটিংস</div>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Mobile menu toggle -->
+    <button class="mobile-menu-btn" id="mobileMenuBtn">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <div class="header-actions">
+            <button class="theme-toggle" id="themeToggle" title="Toggle Dark/Light Mode">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 4rem;">
+            <span class="badge">Official Documentation | অফিসিয়াল ডকুমেন্টেশন</span>
+            <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem; color: var(--primary-dark);">Hotel Management System
+            </h1>
+            <h2 style="font-size: 2rem; margin-bottom: 1rem; color: var(--primary-dark); font-family: 'Hind Siliguri';">
+                হোটেল ম্যানেজমেন্ট সিস্টেম</h2>
+            <p style="font-size: 1.1rem; color: var(--text-muted); max-width: 700px; margin: 0 auto;">
+                A comprehensive bilingual guide to mastering the digital operations of your hotel. <br>
+                <span style="font-family: 'Hind Siliguri';">আপনার হোটেলের সম্পূর্ণ ডিজিটাল কার্যক্রম পরিচালনা করার একটি
+                    পূর্ণাঙ্গ দ্বিভাষিক নির্দেশিকা।</span>
+            </p>
+        </div>
+
+        <!-- Section: Introduction -->
+        <section id="intro">
+            <div class="section-header">
+                <div class="section-icon"><i class="fas fa-info-circle"></i></div>
+                <div>
+                    <h2 style="margin: 0;">1. Introduction</h2>
+                    <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-muted);">১. ভূমিকা</h3>
+                </div>
+            </div>
+
+            <div class="bilingual-block">
+                <p class="en">Welcome to the Hotel Management System (HMS). This platform is built to streamline
+                    end-to-end hotel operations smoothly and efficiently. From guest bookings, front desk management,
+                    POS down to human resources and accounting.</p>
+                <p class="bn">হোটেল ম্যানেজমেন্ট সিস্টেমে (HMS) আপনাকে স্বাগতম। হোটেলের শুরু থেকে শেষ পর্যন্ত সমস্ত কাজ
+                    সহজ ও সুন্দরভাবে পরিচালনা করার জন্য এই সফটওয়্যারটি তৈরি করা হয়েছে। গেস্টের বুকিং, ফ্রন্ট ডেস্ক
+                    পরিচালনা, রেস্টুরেন্ট বিলিং থেকে শুরু করে মানবসম্পদ (HR) এবং হিসাবরক্ষণ সবই এতে আছে।</p>
+            </div>
+        </section>
+
+        <!-- Section: User Roles -->
+        <section id="roles">
+            <div class="section-header">
+                <div class="section-icon"><i class="fas fa-users-cog"></i></div>
+                <div>
+                    <h2 style="margin: 0;">2. User Roles & Access (7 Roles)</h2>
+                    <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-muted);">২. ইউজারের ধরন ও অ্যাক্সেস (৭টি
+                        রোল)</h3>
+                </div>
+            </div>
+
+            <div class="bilingual-block">
+                <p class="en">The HMS operates on a Role-Based Access Control (RBAC) model. There are exactly 7 distinct
+                    roles in the system:</p>
+                <p class="bn">সিস্টেমটি রোল-ভিত্তিক অ্যাক্সেস মডেলে চলে। এই সিস্টেমে মোট ৭ ধরনের নির্দিষ্ট ইউজার রোল
+                    রয়েছে:</p>
+            </div>
+
+            <div class="grid-cards">
+                <div class="feature-card">
+                    <h4><i class="fas fa-chess-king"></i> 1. Super Admin (সুপার এডমিন)</h4>
+                    <p class="en"><strong>Permissions:</strong> Has absolute control over everything. Can manage all
+                        modules, settings, roles, users, laundry, and spa.</p>
+                    <p class="bn"><strong>অ্যাক্সেস:</strong> সিস্টেমের সবকিছুর সম্পূর্ণ নিয়ন্ত্রণ রয়েছে। সমস্ত মডিউল,
+                        সেটিংস, ইউজার, লন্ড্রি ও স্পা নিয়ন্ত্রণ করতে পারবেন।</p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-user-shield"></i> 2. Admin (এডমিন)</h4>
+                    <p class="en"><strong>Permissions:</strong> Similar to Super Admin, manages core configurations,
+                        finances, reports, operations, and settings.</p>
+                    <p class="bn"><strong>অ্যাক্সেস:</strong> প্রায় সুপার এডমিনের মতোই ক্ষমতা। ব্যবসার হিসাব, রিপোর্ট,
+                        অপারেশন এবং সিস্টেম সেটিংস ম্যানেজ করতে পারবেন।</p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-briefcase"></i> 3. Manager (ম্যানেজার)</h4>
+                    <p class="en"><strong>Permissions:</strong> Oversees day-to-day operations: Rooms, Guests, Bookings,
+                        POS, Kitchen, Banquet, Housekeeping, Minibar, Store, and Departments.</p>
+                    <p class="bn"><strong>অ্যাক্সেস:</strong> হোটেলের দৈনন্দিন কাজ তদারকি করেন। রুম, গেস্ট, বুকিং,
+                        রেস্টুরেন্ট (POS), কিচেন, হাউস কিপিং, স্টোর এবং ডিপার্টমেন্ট পরিচালনা করেন।</p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-calculator"></i> 4. Accountant (অ্যাকাউন্ট্যান্ট)</h4>
+                    <p class="en"><strong>Permissions:</strong> Manages finances. Handles Invoices, Payments, Accounts,
+                        general ledger, and full Payroll (generate, approve, pay) alongside financial reports.</p>
+                    <p class="bn"><strong>অ্যাক্সেস:</strong> সম্পূর্ণ হিসাবরক্ষণ করেন। ইনভয়েস, পেমেন্ট, অ্যাকাউন্টস
+                        লেজার এবং কর্মচারীদের বেতন (Payroll) তৈরি ও প্রদান করা তার কাজ।</p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-concierge-bell"></i> 5. Receptionist (রিসেপশনিস্ট)</h4>
+                    <p class="en"><strong>Permissions:</strong> Handles Front Desk duties. Manages Rooms, Guests,
+                        Bookings, Check-ins/outs, Invoices, POS orders, and guest portal requests.</p>
+                    <p class="bn"><strong>অ্যাক্সেস:</strong> ফ্রন্ট ডেস্কের সব দায়িত্ব পালন করেন। গেস্ট ম্যানেজমেন্ট,
+                        রুম বুকিং, চেক-ইন/চেক-আউট করা, বিল তৈরি এবং রেস্টুরেন্ট পস অর্ডার নেন।</p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-broom"></i> 6. Housekeeper (হাউসকিপার)</h4>
+                    <p class="en"><strong>Permissions:</strong> Views room status, updates cleaning assignments, manages
+                        laundry operations, and handles room refreshments/minibar items.</p>
+                    <p class="bn"><strong>অ্যাক্সেস:</strong> রুম পরিষ্কারের কাজ আপডেট করেন, লন্ড্রির কাজ পরিচালনা করেন
+                        এবং রুমের ভেতরের রিফ্রেশমেন্ট বা মিনিবার আইটেমের হিসাব রাখেন।</p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-suitcase-rolling"></i> 7. Guest (গেস্ট)</h4>
+                    <p class="en"><strong>Permissions:</strong> Logs into the guest portal to book rooms online, view
+                        their own profile, and check past booking history.</p>
+                    <p class="bn"><strong>অ্যাক্সেস:</strong> গেস্ট পোর্টালে লগইন করে অনলাইনে রুম বুকিং করতে পারেন এবং
+                        নিজের আগের বুকিং এর ইতিহাস বা প্রোফাইল দেখতে পারেন।</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Rooms & Bookings -->
+        <section id="rooms">
+            <div class="section-header">
+                <div class="section-icon"><i class="fas fa-bed"></i></div>
+                <div>
+                    <h2 style="margin: 0;">3. Rooms & Bookings</h2>
+                    <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-muted);">৩. রুম এবং বুকিং</h3>
+                </div>
+            </div>
+
+            <div class="grid-cards">
+                <div class="feature-card">
+                    <h4><i class="fas fa-layer-group"></i> Room Types (রুমের ধরন)</h4>
+                    <p class="en">Configure room categories (e.g. Deluxe, Suite), base pricing, and capacities.</p>
+                    <p class="bn">রুমের ক্যাটাগরি (যেমন ডিলাক্স, স্যুইট), বেস প্রাইস এবং ক্যাপাসিটি সেট করুন।</p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-door-open"></i> Rooms (রুম ম্যানেজমেন্ট)</h4>
+                    <p class="en">Add specific room numbers and monitor real-time availability status.</p>
+                    <p class="bn">নির্দিষ্ট রুম নম্বর যুক্ত করুন এবং বর্তমানে রুম ফাঁকা আছে কিনা তা লাইভ মনিটর করুন।</p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-calendar-check"></i> Bookings (বুকিং ও ক্যালেন্ডার)</h4>
+                    <p class="en">Create bookings, manage check-ins/outs, and approve online guest requests via the
+                        visual calendar.</p>
+                    <p class="bn">বুকিং তৈরি করুন, চেক-ইন বা চেক-আউট করুন এবং ক্যালেন্ডারের মাধ্যমে অনলাইনে আসা বুকিং
+                        রিকোয়েস্ট অ্যাপ্রুভ করুন।</p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-users"></i> Guests (গেস্ট ডিরেক্টরি)</h4>
+                    <p class="en">Maintain digital profiles, IDs, and stay histories of all guests.</p>
+                    <p class="bn">সব গেস্টের ডিজিটাল প্রোফাইল, আইডি কার্ড এবং তাদের পূর্ববর্তী থাকার রেকর্ড সংরক্ষণ
+                        করুন।</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: F&B & POS -->
+        <section id="pos">
+            <div class="section-header">
+                <div class="section-icon"><i class="fas fa-cash-register"></i></div>
+                <div>
+                    <h2 style="margin: 0;">4. F&B, POS & Kitchen</h2>
+                    <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-muted);">৪. রেস্টুরেন্ট, পস এবং কিচেন
+                    </h3>
+                </div>
+            </div>
+
+            <div class="grid-cards">
+                <div class="feature-card">
+                    <h4><i class="fas fa-store"></i> Outlets (আউটলেট)</h4>
+                    <p class="en">Create separate menus and table layouts for different restaurants or cafes within the
+                        hotel.</p>
+                    <p class="bn">হোটেলের বিভিন্ন রেস্টুরেন্ট বা ক্যাফের জন্য আলাদা মেনু এবং টেবিলের লেআউট তৈরি করুন।
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-receipt"></i> POS System (পস সিস্টেম)</h4>
+                    <p class="en">Take orders, manage tables, process payments, or post restaurant bills directly to a
+                        guest's room.</p>
+                    <p class="bn">অর্ডার নিন, টেবিল ম্যানেজ করুন, পেমেন্ট সম্পূর্ণ করুন অথবা রেস্টুরেন্টের বিল সরাসরি
+                        গেস্টের রুমের বিলের সাথে যুক্ত করুন।</p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-fire-burner"></i> Kitchen Display (কিচেন ডিসপ্লে)</h4>
+                    <p class="en">Live screen for kitchen staff to view incoming orders and mark food as "Ready".</p>
+                    <p class="bn">রান্নাঘরের স্টাফদের জন্য লাইভ স্ক্রিন, যেখানে তারা নতুন অর্ডার দেখতে পারবে এবং রান্না
+                        শেষ হলে "Ready" মার্ক করতে পারবে।</p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-glass-cheers"></i> Banquet (ব্যাংকোয়েট / হলরুম)</h4>
+                    <p class="en">Manage event hall bookings, venues, and catering settings for large events.</p>
+                    <p class="bn">বড় অনুষ্ঠানের জন্য হলরুম বুকিং, ভেন্যু এবং ক্যাটারিং এর সমস্ত কিছু ম্যানেজ করুন।</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Housekeeping -->
+        <section id="housekeeping">
+            <div class="section-header">
+                <div class="section-icon"><i class="fas fa-spray-can"></i></div>
+                <div>
+                    <h2 style="margin: 0;">5. Housekeeping & Operations</h2>
+                    <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-muted);">৫. হাউসকিপিং ও অপারেশন</h3>
+                </div>
+            </div>
+
+            <div class="grid-cards">
+                <div class="feature-card">
+                    <h4><i class="fas fa-tasks"></i> Cleaning Assignments (রুম পরিষ্কার)</h4>
+                    <p class="en">Allocate dirty rooms to housekeepers and track status (Pending, In Progress,
+                        Completed).</p>
+                    <p class="bn">হাউসকিপারদের কাজ ভাগ করে দিন এবং কাজের বর্তমান অবস্থা (চলমান, সম্পন্ন) ট্র্যাক করুন।
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-wine-glass"></i> Refreshments & Minibar (মিনিবার)</h4>
+                    <p class="en">Log items consumed from the minibar to automatically update the guest's upcoming bill.
+                    </p>
+                    <p class="bn">রুমের মিনিবার থেকে ব্যবহৃত খাবার বা পানীয় স্ক্যান করে সরাসরি গেস্টের বিলে যুক্ত করুন।
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-tools"></i> Maintenance (রক্ষণাবেক্ষণ)</h4>
+                    <p class="en">Report broken fixtures (e.g. AC, TV) and track repair statuses.</p>
+                    <p class="bn">নষ্ট হওয়া জিনিসপত্রের (যেমন এসি বা টিভি) রিপোর্ট করুন এবং সেগুলোর মেরামতের আপডেট
+                        দেখুন।</p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-tshirt"></i> Laundry & Spa (লন্ড্রি ও স্পা)</h4>
+                    <p class="en">Manage guest laundry service orders and process Spa bookings.</p>
+                    <p class="bn">গেস্টদের লন্ড্রি সার্ভিসের অর্ডার এবং স্পা বুকিংয়ের ফুল ম্যানেজমেন্ট।</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Business & HR -->
+        <section id="business">
+            <div class="section-header">
+                <div class="section-icon"><i class="fas fa-chart-bar"></i></div>
+                <div>
+                    <h2 style="margin: 0;">6. Accounts, HR & Analytics</h2>
+                    <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-muted);">৬. হিসাবরক্ষণ, এইচআর এবং রিপোর্ট
+                    </h3>
+                </div>
+            </div>
+
+            <div class="grid-cards">
+                <div class="feature-card">
+                    <h4><i class="fas fa-file-invoice-dollar"></i> Accounts (হিসাবরক্ষণ)</h4>
+                    <p class="en">Record daily expenses, hotel revenues, and view detailed profit/loss ledgers.</p>
+                    <p class="bn">প্রতিদিনের খরচ এবং আয় রেকর্ড করুন এবং বিস্তারিত প্রফিট/লস (লাভ-ক্ষতি) লেজার দেখুন।</p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-id-badge"></i> HR & Payroll (এইচআর ও পে-রোল)</h4>
+                    <p class="en">Maintain staff records, mark daily attendance, and process monthly salaries/payroll.
+                    </p>
+                    <p class="bn">কর্মচারীদের তথ্য সংরক্ষণ, প্রতিদিনের হাজিরা গ্রহণ এবং মাসের শেষে বেতন (Payroll) তৈরি
+                        করুন।</p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-chart-pie"></i> Reports (রিপোর্টস)</h4>
+                    <p class="en">Generate PDF reports for Occupancy Rates, Daily Cash Flow, and Financial analytics.
+                    </p>
+                    <p class="bn">রুম বুকিংয়ের হার, প্রতিদিনের ক্যাশ ফ্লো এবং আর্থিক অ্যানালিটিক্স এর পিডিএফ রিপোর্ট
+                        জেনারেট করুন।</p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-bullhorn"></i> Marketing (মার্কেটিং)</h4>
+                    <p class="en">Create SMS/Email promotional campaigns for guests.</p>
+                    <p class="bn">গেস্টদের জন্য বিশেষ অফার বা প্রমোশনাল এসএমএস ও ইমেইল ক্যাম্পেইন তৈরি করুন।</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: System Settings -->
+        <section id="settings">
+            <div class="section-header">
+                <div class="section-icon"><i class="fas fa-cog"></i></div>
+                <div>
+                    <h2 style="margin: 0;">7. System Settings</h2>
+                    <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-muted);">৭. সিস্টেম সেটিংস</h3>
+                </div>
+            </div>
+
+            <div class="bilingual-block">
+                <p class="en">Administrators can configure the core aspects of the system here:</p>
+                <p class="bn">সিস্টেম অ্যাডমিনিস্ট্রেটররা এখান থেকে পুরো সফটওয়্যারের কোর সেটিংস পরিবর্তন করতে পারবেন:
+                </p>
+            </div>
+
+            <ul style="margin-left: 2rem; margin-top: 1rem; color: var(--text-muted);">
+                <li style="margin-bottom: 0.75rem;">
+                    <strong>Departments / ডিপার্টমেন্ট:</strong>
+                    <p style="margin-bottom: 0; font-size: 0.9rem;">Structure your hotel teams (e.g., Front Office,
+                        Kitchen, HR). <br><span style="font-family: 'Hind Siliguri';">আপনার হোটেলের বিভিন্ন বিভাগ তৈরি
+                            করুন (যেমন- ফ্রন্ট অফিস, কিচেন)।</span></p>
+                </li>
+                <li style="margin-bottom: 0.75rem;">
+                    <strong>Users / ব্যবহারকারী (ইউজার):</strong>
+                    <p style="margin-bottom: 0; font-size: 0.9rem;">Create login credentials for your staff. <br><span
+                            style="font-family: 'Hind Siliguri';">আপনার কর্মচারীদের লগইন করার জন্য অ্যাকাউন্ট তৈরি করে
+                            দিন।</span></p>
+                </li>
+                <li style="margin-bottom: 0.75rem;">
+                    <strong>Roles & Permissions / রোল ও পারমিশন:</strong>
+                    <p style="margin-bottom: 0; font-size: 0.9rem;">Assign exact access rights to ensure users only see
+                        what they need to see. <br><span style="font-family: 'Hind Siliguri';">কাকে সফটওয়্যারের কতটুকু
+                            অ্যাক্সেস দিবেন, তা এখান থেকে সেট করুন।</span></p>
+                </li>
+            </ul>
+        </section>
+
+        <footer
+            style="text-align: center; margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.9rem;">
+            &copy; <span id="year"></span> Hotel Management System. Developed for operational excellence.<br>
+            <span style="font-family: 'Hind Siliguri';">উন্নত পরিচালনার জন্য প্রস্তুতকৃত।</span>
+        </footer>
+    </main>
+
+    <script>
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('.nav-link').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                // Update active state
+                document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+                this.classList.add('active');
+
+                // Scroll to section
+                const targetId = this.getAttribute('href').substring(1);
+                const targetSection = document.getElementById(targetId);
+
+                if (targetSection) {
+                    window.scrollTo({
+                        top: targetSection.offsetTop - 40,
+                        behavior: 'smooth'
+                    });
+                }
+
+                // Close mobile menu if open
+                const sidebar = document.getElementById('sidebar');
+                if (window.innerWidth <= 900) {
+                    sidebar.classList.remove('show');
+                }
+            });
+        });
+
+        // Mobile menu toggle
+        const mobileBtn = document.getElementById('mobileMenuBtn');
+        const sidebar = document.getElementById('sidebar');
+
+        mobileBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('show');
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 900 && !sidebar.contains(e.target) && !mobileBtn.contains(e.target)) {
+                sidebar.classList.remove('show');
+            }
+        });
+
+        // Dark/Light Mode Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const icon = themeToggle.querySelector('i');
+
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-theme');
+            if (document.body.classList.contains('dark-theme')) {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            } else {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            }
+        });
+
+        // Highlight active section on scroll
+        window.addEventListener('scroll', () => {
+            let current = '';
+            const sections = document.querySelectorAll('section');
+
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= (sectionTop - 150)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').substring(1) === current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
