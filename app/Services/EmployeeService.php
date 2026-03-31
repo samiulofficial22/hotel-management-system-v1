@@ -13,7 +13,9 @@ use Spatie\Permission\Models\Role;
 
 class EmployeeService
 {
-    public function __construct(protected EmployeeRepository $repository) {}
+    public function __construct(protected EmployeeRepository $repository)
+    {
+    }
 
     /** Validation rules for legacy form (unchanged). */
     public function rules(bool $forUpdate = false): array
@@ -57,6 +59,7 @@ class EmployeeService
             'status' => ['nullable', 'string', 'max:30'],
             'nid_number' => ['nullable', 'string', 'max:50'],
             'nid_photo' => ['nullable', 'image', 'mimes:jpeg,jpg,png', 'max:2048'],
+            'profile_pic' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
         ];
     }
 
@@ -170,7 +173,7 @@ class EmployeeService
 
             if ($employee->user_id) {
                 $user = $employee->user;
-                if (! $user) {
+                if (!$user) {
                     $employee->update(['user_id' => null]);
                     $updated++;
                     continue;

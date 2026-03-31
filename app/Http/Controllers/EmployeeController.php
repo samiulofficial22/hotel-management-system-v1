@@ -18,7 +18,8 @@ class EmployeeController extends Controller
     public function __construct(
         protected EmployeeService $service,
         protected DepartmentService $departmentService
-    ) {}
+    ) {
+    }
 
     public function index(): View
     {
@@ -41,7 +42,7 @@ class EmployeeController extends Controller
         $rules = $this->service->rulesNewForm();
         $rules['password'] = ['nullable', 'string', 'min:8', 'confirmed'];
         $validated = $request->validate($rules);
-        if (! empty($validated['password'])) {
+        if (!empty($validated['password'])) {
             $request->validate(['email' => ['required', 'email', 'max:255', 'unique:users,email']]);
             $validated['email'] = $request->input('email');
         }
@@ -55,7 +56,7 @@ class EmployeeController extends Controller
         $data = $this->service->normalizeNewFormData($validated);
         $employee = $this->service->create($data);
 
-        if (! empty($validated['password']) && ! empty($validated['email'])) {
+        if (!empty($validated['password']) && !empty($validated['email'])) {
             $user = User::create([
                 'name' => $employee->display_name,
                 'email' => $validated['email'],
@@ -65,6 +66,16 @@ class EmployeeController extends Controller
                 $user->assignRole($employee->designation);
             }
             $employee->update(['user_id' => $user->id]);
+        }
+
+        if ($request->hasFile('profile_pic')) {
+            $path = $request->file('profile_pic')->store('profile-pics', 'public');
+            $employee->refresh();
+            if ($employee->user_id && $employee->user) {
+                $employee->user->update(['profile_pic' => $path]);
+            } else {
+                $employee->update(['photo' => $path]);
+            }
         }
 
         return redirect()->route('hr.employees.index')->with('success', __('Employee created.'));
@@ -92,7 +103,7 @@ class EmployeeController extends Controller
         $rules['password'] = ['nullable', 'string', 'min:8', 'confirmed'];
         $validated = $request->validate($rules);
 
-        if (! empty($validated['password'])) {
+        if (!empty($validated['password'])) {
             $emailRules = ['required', 'email', 'max:255'];
             if ($employee->user_id && $employee->user) {
                 $emailRules[] = 'unique:users,email,' . $employee->user_id;
@@ -115,7 +126,7 @@ class EmployeeController extends Controller
         $data = $this->service->normalizeNewFormData($validated, $employee);
         $this->service->update($employee, $data);
 
-        if (! empty($validated['password'])) {
+        if (!empty($validated['password'])) {
             $email = $validated['email'] ?? $employee->email ?? $employee->user?->email;
             if ($employee->user_id && $employee->user) {
                 $employee->user->update([
@@ -136,6 +147,22 @@ class EmployeeController extends Controller
                     $user->assignRole($employee->designation);
                 }
                 $employee->update(['user_id' => $user->id]);
+            }
+        }
+
+        if ($request->hasFile('profile_pic')) {
+            $path = $request->file('profile_pic')->store('profile-pics', 'public');
+            $employee->refresh();
+            if ($employee->user_id && $employee->user) {
+                if ($employee->user->profile_pic) {
+                    Storage::disk('public')->delete($employee->user->profile_pic);
+                }
+                $employee->user->update(['profile_pic' => $path]);
+            } else {
+                if ($employee->photo) {
+                    Storage::disk('public')->delete($employee->photo);
+                }
+                $employee->update(['photo' => $path]);
             }
         }
 
@@ -162,7 +189,7 @@ class EmployeeController extends Controller
             $msg[] = __(':count skipped.', ['count' => $result['skipped']]);
         }
         $message = implode(' ', $msg) ?: __('No changes.');
-        if (! empty($result['errors'])) {
+        if (!empty($result['errors'])) {
             return redirect()->route('hr.employees.index')
                 ->with('sync_result', $message)
                 ->with('sync_errors', $result['errors']);

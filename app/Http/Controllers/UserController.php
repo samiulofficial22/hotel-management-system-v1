@@ -23,7 +23,7 @@ class UserController extends Controller
 
         $guestsQuery = User::role('Guest')->with(['roles', 'guest'])->orderByDesc('created_at');
         if (!$isSuperAdmin) {
-            $guestsQuery->whereDoesntHave('roles', fn ($q) => $q->where('name', 'Super Admin'));
+            $guestsQuery->whereDoesntHave('roles', fn($q) => $q->where('name', 'Super Admin'));
         }
         if ($likeGuests) {
             $guestsQuery->where(function ($q) use ($likeGuests) {
@@ -32,10 +32,10 @@ class UserController extends Controller
         }
         $guests = $guestsQuery->paginate(15, ['*'], 'guests_page')->withQueryString();
 
-        $staffQuery = User::whereDoesntHave('roles', fn ($q) => $q->where('name', 'Guest'))
+        $staffQuery = User::whereDoesntHave('roles', fn($q) => $q->where('name', 'Guest'))
             ->with('roles');
         if (!$isSuperAdmin) {
-            $staffQuery->whereDoesntHave('roles', fn ($q) => $q->where('name', 'Super Admin'));
+            $staffQuery->whereDoesntHave('roles', fn($q) => $q->where('name', 'Super Admin'));
         }
         if ($likeStaff) {
             $staffQuery->where(function ($q) use ($likeStaff) {
@@ -57,7 +57,7 @@ class UserController extends Controller
             return 'Other';
         });
         foreach ($roleOrder as $r) {
-            if (! $staffByRole->has($r)) {
+            if (!$staffByRole->has($r)) {
                 $staffByRole->put($r, collect());
             }
         }
@@ -106,12 +106,23 @@ class UserController extends Controller
             'password' => Hash::make($data['password']),
         ]);
 
-        if (auth()->user()?->can('roles.assign') && ! empty($data['roles'] ?? [])) {
+        if (auth()->user()?->can('roles.assign') && !empty($data['roles'] ?? [])) {
             $roleQuery = Role::whereIn('id', $data['roles']);
             if (!auth()->user()?->hasRole('Super Admin')) {
                 $roleQuery->where('name', '!=', 'Super Admin');
             }
             $user->syncRoles($roleQuery->pluck('name')->all());
+        }
+
+        if (!$user->hasRole('Guest')) {
+            $employeeService = app(\App\Services\EmployeeService::class);
+            $empData = $employeeService->normalizeNewFormData([
+                'name' => $user->name,
+                'email' => $user->email,
+                'designation' => $user->roles->first()?->name,
+            ]);
+            $empData['user_id'] = $user->id;
+            $employeeService->create($empData);
         }
 
         return redirect()->route('users.index')->with('success', __('User created.'));
@@ -153,7 +164,7 @@ class UserController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
         ];
-        if (! empty($data['password'])) {
+        if (!empty($data['password'])) {
             $update['password'] = Hash::make($data['password']);
         }
         if ($request->hasFile('profile_pic')) {
@@ -172,6 +183,27 @@ class UserController extends Controller
                 $roleQuery->where('name', '!=', 'Super Admin');
             }
             $user->syncRoles($roleQuery->pluck('name')->all());
+        }
+
+        $employee = \App\Models\Employee::where('user_id', $user->id)->first();
+        if ($employee) {
+            $nameParts = explode(' ', $user->name, 2);
+            $employee->update([
+                'name' => $user->name,
+                'first_name' => $nameParts[0] ?? '',
+                'last_name' => $nameParts[1] ?? '',
+                'email' => $user->email,
+                'designation' => $user->roles->first()?->name ?? $employee->designation,
+            ]);
+        } elseif (!$user->hasRole('Guest')) {
+            $employeeService = app(\App\Services\EmployeeService::class);
+            $empData = $employeeService->normalizeNewFormData([
+                'name' => $user->name,
+                'email' => $user->email,
+                'designation' => $user->roles->first()?->name,
+            ]);
+            $empData['user_id'] = $user->id;
+            $employeeService->create($empData);
         }
 
         return redirect()->route('users.index')->with('success', __('User updated.'));
