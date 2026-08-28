@@ -16,11 +16,13 @@ use Illuminate\View\View;
 
 class HousekeepingController extends Controller
 {
-    public function __construct(protected HousekeepingService $service) {}
+    public function __construct(protected HousekeepingService $service)
+    {
+    }
 
     public function allWork(Request $request): View
     {
-        if (! auth()->user()?->can('housekeeping.manage')) {
+        if (!auth()->user()?->can('housekeeping.manage')) {
             abort(403);
         }
         $query = HousekeepingAssignment::with(['room.roomType', 'assignedTo'])
@@ -41,10 +43,10 @@ class HousekeepingController extends Controller
         $assignments = $query->paginate(20)->withQueryString();
         $housekeepers = User::role('Housekeeper')->orderBy('name')->get(['id', 'name']);
         $stats = [
-            'total'       => HousekeepingAssignment::count(),
-            'pending'     => HousekeepingAssignment::where('status', HousekeepingAssignment::STATUS_PENDING)->count(),
+            'total' => HousekeepingAssignment::count(),
+            'pending' => HousekeepingAssignment::where('status', HousekeepingAssignment::STATUS_PENDING)->count(),
             'in_progress' => HousekeepingAssignment::where('status', HousekeepingAssignment::STATUS_IN_PROGRESS)->count(),
-            'completed'   => HousekeepingAssignment::where('status', HousekeepingAssignment::STATUS_COMPLETED)->count(),
+            'completed' => HousekeepingAssignment::where('status', HousekeepingAssignment::STATUS_COMPLETED)->count(),
         ];
         return view('housekeeping.all-work', compact('assignments', 'housekeepers', 'stats'));
     }
@@ -60,7 +62,8 @@ class HousekeepingController extends Controller
         $users = User::role('Housekeeper')->orderBy('name')->get(['id', 'name']);
         $roomsNeedingAttention = $this->service->getRoomsNeedingCleaning($date);
         $unassignedRooms = $this->service->getUnassignedRooms($date);
-        return view('housekeeping.index', compact('assignments', 'rooms', 'date', 'users', 'roomId', 'roomsNeedingAttention', 'unassignedRooms'));
+        $refreshmentItems = \App\Models\RoomRefreshmentItem::where('is_active', true)->orderBy('name')->get();
+        return view('housekeeping.index', compact('assignments', 'rooms', 'date', 'users', 'roomId', 'roomsNeedingAttention', 'unassignedRooms', 'refreshmentItems'));
     }
 
     public function assign(Request $request): RedirectResponse
@@ -81,7 +84,7 @@ class HousekeepingController extends Controller
         $validated = $request->validate($rules, [
             'room_id.unique' => __('This room is already assigned for the selected date.')
         ]);
-        if (! $canAssignOthers) {
+        if (!$canAssignOthers) {
             if ($request->filled('assigned_to') && (int) $request->assigned_to !== (int) auth()->id()) {
                 abort(403, __('You can only assign rooms to yourself.'));
             }
@@ -99,7 +102,7 @@ class HousekeepingController extends Controller
 
     public function edit(HousekeepingAssignment $assignment): View
     {
-        if (! auth()->user()?->can('housekeeping.assign_others')) {
+        if (!auth()->user()?->can('housekeeping.assign_others')) {
             abort(403, __('Only admin or manager can edit assignments.'));
         }
         $assignment->load(['room.roomType', 'assignedTo']);
@@ -110,7 +113,7 @@ class HousekeepingController extends Controller
 
     public function update(Request $request, HousekeepingAssignment $assignment): RedirectResponse
     {
-        if (! auth()->user()?->can('housekeeping.assign_others')) {
+        if (!auth()->user()?->can('housekeeping.assign_others')) {
             abort(403, __('Only admin or manager can update assignments.'));
         }
         $housekeeperIds = User::role('Housekeeper')->pluck('id')->implode(',');
@@ -122,18 +125,18 @@ class HousekeepingController extends Controller
                     ->where('date', $request->input('date'))
                     ->ignore($assignment->id),
             ],
-            'date'        => 'required|date',
+            'date' => 'required|date',
             'assigned_to' => ['required', 'exists:users,id', 'in:' . $housekeeperIds],
-            'status'      => ['required', 'in:pending,in_progress,completed'],
+            'status' => ['required', 'in:pending,in_progress,completed'],
         ]);
         $newStatus = $validated['status'];
         $update = [
-            'room_id'     => (int) $validated['room_id'],
-            'date'        => $validated['date'],
+            'room_id' => (int) $validated['room_id'],
+            'date' => $validated['date'],
             'assigned_to' => (int) $validated['assigned_to'],
-            'status'      => $newStatus,
+            'status' => $newStatus,
         ];
-        if ($newStatus === HousekeepingAssignment::STATUS_COMPLETED && ! $assignment->completed_at) {
+        if ($newStatus === HousekeepingAssignment::STATUS_COMPLETED && !$assignment->completed_at) {
             $update['completed_at'] = now();
         }
         if ($newStatus !== HousekeepingAssignment::STATUS_COMPLETED) {
@@ -155,7 +158,7 @@ class HousekeepingController extends Controller
 
     public function destroy(HousekeepingAssignment $assignment): RedirectResponse
     {
-        if (! auth()->user()?->can('housekeeping.assign_others')) {
+        if (!auth()->user()?->can('housekeeping.assign_others')) {
             abort(403, __('Only admin or manager can delete assignments.'));
         }
         $date = $assignment->date->format('Y-m-d');
@@ -165,7 +168,7 @@ class HousekeepingController extends Controller
 
     public function reassign(Request $request, HousekeepingAssignment $assignment): RedirectResponse
     {
-        if (! auth()->user()?->can('housekeeping.assign_others')) {
+        if (!auth()->user()?->can('housekeeping.assign_others')) {
             abort(403, __('You cannot reassign rooms. Only admin or manager can.'));
         }
         $request->validate([
@@ -205,7 +208,7 @@ class HousekeepingController extends Controller
     {
         $isAssigned = (int) $assignment->assigned_to === (int) auth()->id();
         $canEditOthers = auth()->user()?->can('housekeeping.assign_others');
-        if (! $isAssigned && ! $canEditOthers) {
+        if (!$isAssigned && !$canEditOthers) {
             abort(403, __('You can only edit notes for your own assignments.'));
         }
         $request->validate(['notes' => 'nullable|string|max:1000']);

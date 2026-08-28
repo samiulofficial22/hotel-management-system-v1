@@ -22,8 +22,11 @@
             .sidebar-backdrop.show { display: block; }
         }
         .notifications-dropdown { padding: 0 !important; }
-        .notifications-dropdown .dropdown-item { white-space: normal; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%; padding-right: 1rem; padding-left: 1rem; }
-        .notifications-dropdown .dropdown-header { padding-left: 1rem; padding-right: 1rem; }
+        .notifications-dropdown .dropdown-item { white-space: normal; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%; padding-right: 1rem; padding-left: 1rem; transition: background-color 0.2s ease; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .notifications-dropdown .dropdown-item:last-child { border-bottom: none; }
+        .notifications-dropdown .dropdown-item:hover { background-color: rgba(13, 110, 253, 0.08); }
+        .notifications-dropdown .dropdown-item.unread { background-color: rgba(13, 110, 253, 0.04); border-left: 4px solid #0d6efd; }
+        .notifications-dropdown .dropdown-header { padding-left: 1rem; padding-right: 1rem; background-color: #f8f9fa; font-weight: bold; }
         .card.hover-shadow { transition: box-shadow 0.2s ease; }
         .card.hover-shadow:hover { box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.12) !important; }
 
@@ -298,7 +301,7 @@
                             @forelse($headerNotifications ?? [] as $n)
                                 @php $data = $n->data ?? []; @endphp
                                 <li>
-                                    <a class="dropdown-item py-2 text-wrap {{ $n->read_at ? '' : 'bg-light' }}" href="{{ route('notifications.read', $n->id) }}">
+                                    <a class="dropdown-item py-2 text-wrap {{ $n->read_at ? '' : 'unread fw-semibold' }}" href="{{ route('notifications.read', $n->id) }}">
                                         <div class="small text-break" style="word-wrap: break-word; overflow-wrap: break-word; line-height: 1.35;">{{ $data['message'] ?? __('Notification') }}</div>
                                         <small class="text-muted">{{ $n->created_at?->diffForHumans() }}</small>
                                     </a>
